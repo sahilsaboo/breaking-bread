@@ -48,6 +48,7 @@ When a decision is made, record it in `docs/decisions.md`.
 - Backend setup (Python 3.12): `cd backend && python3.12 -m venv .venv && .venv/bin/pip install -e ".[dev]"`
 - Backend dev server: `cd backend && .venv/bin/uvicorn app.main:app --reload` (http://localhost:8000, docs at /api/docs)
 - Backend tests: `cd backend && .venv/bin/pytest`
+- Windows: the venv lives at `.venv\Scripts\` instead of `.venv/bin/` (see README "On Windows"). Always pass `encoding="utf-8"` when reading or writing text files; Windows defaults to cp1252.
 - Frontend: `cd frontend && npm install && npm run dev` (http://localhost:3000)
 - Frontend checks: `cd frontend && npm run lint && npx tsc --noEmit`
 - After changing `backend/app/models.py` or routes: `cd backend && .venv/bin/python scripts/export_openapi.py`, then `cd frontend && npm run gen:api`. Commit both `backend/openapi.json` and `frontend/src/lib/api-types.ts`.
