@@ -24,11 +24,27 @@ Success = this flow works reliably end to end. Prioritize work that completes th
 These are unresolved (see `docs/decisions.md`). Propose options with tradeoffs and ask before committing:
 - Grocery price data source, and how accurate cost estimates can be
 - Macronutrient data source
-- Reliability of ingredient extraction from links (captions may lack ingredients; platform access may be restricted)
+- Reliability of ingredient extraction from links (captions may lack ingredients; platform access and terms of service may restrict it)
+- Hosting for frontend and backend
 When a decision is made, record it in `docs/decisions.md`.
 
-## Tech stack and commands
-TODO: fill in once chosen (framework, language, hosting, how to run dev server, tests, lint).
+## Tech stack
+- Frontend: Next.js (TypeScript) in `frontend/`. UI only: link input, results view (grocery list, cost, macros), step-by-step cooking view.
+- Backend: Python FastAPI in `backend/`. Owns the whole pipeline: link -> content extraction -> Claude API structuring -> price and macro lookup -> response.
+- LLM: Claude API. Ask for JSON and validate it against Pydantic models. One shared schema covers ingredients, grocery list, cost, macros, and steps.
+- Price and macro data: behind adapter interfaces (e.g. `get_price(item)`, `get_macros(item)`), stubbed until sources are decided. Don't hardcode a vendor.
+- No database or auth this sprint. The flow is stateless. Flag it before adding either.
+- Required fallback: the user can paste caption or ingredient text when link extraction fails.
+
+## Conventions
+- Frontend talks to the backend over HTTP/JSON only. No business logic in the frontend.
+- Secrets (API keys) live in `.env` files and are never committed.
+- Keep the backend pipeline as separate, testable steps (extract, structure, price, macros, guidance) so each can be swapped or debugged alone.
+
+## Commands
+TODO: confirm after scaffolding. Expected defaults:
+- Frontend: `cd frontend && npm run dev`
+- Backend: `cd backend && uvicorn app.main:app --reload`
 
 ## Team
-Sarah Fattah, Sahil Saboo, Brendan Schemer (AI Builder Space Proseminar).
+Sarah Fattah, Sahil Saboo, Brendan Shemer (AI Builder Space Proseminar).
