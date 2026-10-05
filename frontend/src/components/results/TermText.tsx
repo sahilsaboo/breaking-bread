@@ -39,7 +39,7 @@ function TermButton({ label, definition }: { label: string; definition: string }
     <>
       <button
         type="button"
-        className="font-medium text-accent underline decoration-dotted underline-offset-4"
+        className="font-semibold text-accent-ink underline decoration-sorbet decoration-dotted decoration-2 underline-offset-4"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         title={definition}

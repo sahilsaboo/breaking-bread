@@ -1,20 +1,26 @@
 import type { MealPlan } from "@/lib/api";
 import { approxMoney } from "@/lib/format";
+import { ingredientIllustration, tintFor } from "@/lib/illustrations";
+
+import { Illustration } from "../Illustration";
 
 export function GroceryList({ plan }: { plan: MealPlan }) {
   const owned = plan.ingredients.filter((i) => i.owned);
   return (
     <section aria-labelledby="grocery-heading" className="flex flex-col gap-3">
-      <h2 id="grocery-heading" className="text-xl font-bold tracking-tight">
-        Grocery list
+      <h2 id="grocery-heading" className="flex items-center gap-2 text-xl font-extrabold tracking-tight">
+        <Illustration name="shopping-cart" size={36} tint="bg-sky-soft" /> Grocery list
       </h2>
 
       {plan.grocery_list.length === 0 ? (
-        <p className="card text-muted">You already have everything. Nice!</p>
+        <p className="card flex items-center gap-3 text-muted">
+          <Illustration name="sparkles" size={40} tint="bg-apricot-soft" /> You already have everything. Nice!
+        </p>
       ) : (
         <ul className="card flex flex-col divide-y divide-border p-0">
-          {plan.grocery_list.map((item) => (
-            <li key={item.ingredient_id} className="flex items-start gap-3 px-5 py-3">
+          {plan.grocery_list.map((item, i) => (
+            <li key={item.ingredient_id} className="flex items-center gap-3 px-4 py-3">
+              <Illustration name={ingredientIllustration(item.name)} size={44} tint={tintFor(i)} />
               <div className="flex flex-1 flex-col">
                 <span className="font-medium">
                   {item.packages > 1 && `${item.packages} × `}

@@ -55,6 +55,10 @@ class Step(BaseModel):
     safety_note: str | None = None
     equipment_swap: str | None = None
     terms: list[Term] = []
+    # Where this step happens in the source video, so the UI can jump there.
+    # None when unknown (pasted text, or no transcript timestamps).
+    video_start_seconds: float | None = None
+    video_end_seconds: float | None = None
 
 
 class Costs(BaseModel):
