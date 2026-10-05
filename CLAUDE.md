@@ -23,7 +23,7 @@ Success = this flow works reliably end to end. Prioritize work that completes th
 ## Open decisions: do not assume answers
 These are unresolved (see `docs/decisions.md`). Propose options with tradeoffs and ask before committing:
 - Grocery price data source (demo is in Boston/Cambridge, where Kroger has no stores). Research and verify Boston-area coverage before proposing a source.
-- Specific backend host (Render, Railway, or Fly.io)
+- Transcription model size that fits in 512 MB (`docs/decisions.md` #13)
 - TikTok and Instagram terms of service for content download
 When a decision is made, record it in `docs/decisions.md`.
 
@@ -34,9 +34,9 @@ When a decision is made, record it in `docs/decisions.md`.
 - LLM: Claude API. Ask for JSON and validate it against Pydantic models. One shared schema (see `docs/technical-spec.md`) covers ingredients, grocery list, cost, macros, and steps.
 - Macros: USDA FoodData Central, behind a `get_macros` adapter.
 - Prices: behind a `get_price` adapter, stubbed until the source is decided. Don't hardcode a vendor.
-- Cache: SQLite for extraction results (by canonical URL) and USDA `fdcId` mappings. Demo reels are also committed as JSON fixtures loaded at startup. No auth, accounts, or stored user data; flag it before adding any.
+- Cache: SQLite for extraction results (by canonical URL) and USDA `fdcId` mappings, best-effort because the free host wipes its disk. Demo reels are committed as JSON fixtures loaded at startup. No auth, accounts, or stored user data; flag it before adding any.
 - Required fallback: when link extraction fails, show a clear error and let the user paste caption or ingredient text.
-- Hosting: frontend on Vercel; backend on a long-running host (Render, Railway, or Fly.io). Not Vercel Services: backend functions don't share memory or allow long-running extraction.
+- Hosting: frontend on Vercel; backend on Render's free tier via `render.yaml` (512 MB RAM, sleeps after 15 min idle, disk wiped on restart). Not Vercel Services: backend functions don't share memory or allow long-running extraction. Keep backend memory use under 512 MB.
 - Routing: every backend route lives under `/api`. The browser only calls `/api/*` on the frontend's own domain, and `frontend/next.config.ts` forwards it to `BACKEND_URL` (default http://localhost:8000).
 
 ## Conventions
