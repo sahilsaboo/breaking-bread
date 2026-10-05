@@ -63,17 +63,23 @@
   "steps": [
     {
       "order": 1,
+      "video_start_seconds": 0,
+      "video_end_seconds": 5,
       "instruction": "Fill your pot about three-quarters with water. Add a big pinch of salt and bring it to a rolling boil over high heat.",
       "doneness_cue": "Big bubbles keep breaking the surface, even when you stir.",
       "terms": [{ "term": "rolling boil", "definition": "Water bubbling hard enough that stirring doesn't stop it." }]
     },
     {
       "order": 2,
+      "video_start_seconds": 5,
+      "video_end_seconds": 11,
       "instruction": "Pat the chicken dry with a paper towel. Cut it into 1-inch pieces.",
       "safety_note": "Raw chicken can carry bacteria. Wash your hands, knife, and cutting board with hot soapy water before touching anything else, and don't cut vegetables on the same board until it's washed."
     },
     {
       "order": 3,
+      "video_start_seconds": 11,
+      "video_end_seconds": 19,
       "instruction": "Heat the olive oil in your skillet over medium-high heat. Add the chicken, season it with salt and pepper, and sear it, turning the pieces now and then.",
       "timer_seconds": 420,
       "doneness_cue": "No pink left inside a cut-open piece, and the outside is golden.",
@@ -82,6 +88,8 @@
     },
     {
       "order": 4,
+      "video_start_seconds": 19,
+      "video_end_seconds": 25,
       "instruction": "Move the chicken to a plate. Add the pasta to the boiling water and cook it until it's al dente.",
       "timer_seconds": 600,
       "doneness_cue": "Bite a piece: it should be soft with a tiny bit of firmness in the center.",
@@ -89,11 +97,15 @@
     },
     {
       "order": 5,
+      "video_start_seconds": 25,
+      "video_end_seconds": 30,
       "instruction": "Scoop out half a cup of the pasta water with a mug and set it aside. Then drain the pasta.",
       "equipment_swap": "No colander? Hold the pot lid slightly open over the pot and carefully tip the water into the sink, keeping the pasta in."
     },
     {
       "order": 6,
+      "video_start_seconds": 30,
+      "video_end_seconds": 37,
       "instruction": "Turn the skillet down to medium. Melt the butter, then add the minced garlic and stir it.",
       "timer_seconds": 60,
       "doneness_cue": "The garlic smells strong and is just turning light golden. Don't let it go brown, or it turns bitter.",
@@ -101,6 +113,8 @@
     },
     {
       "order": 7,
+      "video_start_seconds": 37,
+      "video_end_seconds": 44,
       "instruction": "Pour in the cream and stir in the parmesan. Let it simmer until it thickens a little.",
       "timer_seconds": 180,
       "doneness_cue": "The sauce coats the back of a spoon instead of running right off.",
@@ -108,6 +122,8 @@
     },
     {
       "order": 8,
+      "video_start_seconds": 44,
+      "video_end_seconds": 52,
       "instruction": "Add the spinach, pasta, and chicken. Stir until the spinach wilts. If the sauce is too thick, splash in some saved pasta water.",
       "timer_seconds": 120,
       "doneness_cue": "The spinach is soft and dark green, and everything is hot.",
@@ -115,6 +131,8 @@
     },
     {
       "order": 9,
+      "video_start_seconds": 52,
+      "video_end_seconds": 58,
       "instruction": "Serve right away.",
       "safety_note": "Put leftovers in the fridge within 2 hours and eat them within 3 to 4 days. Reheat until steaming hot (165°F)."
     }

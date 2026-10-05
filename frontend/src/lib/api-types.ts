@@ -315,6 +315,10 @@ export interface components {
              * @default []
              */
             terms: components["schemas"]["Term"][];
+            /** Video Start Seconds */
+            video_start_seconds?: number | null;
+            /** Video End Seconds */
+            video_end_seconds?: number | null;
         };
         /** Term */
         Term: {

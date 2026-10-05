@@ -9,7 +9,7 @@ import { Notice } from "../Notice";
 import { CostSummary } from "./CostSummary";
 import { GroceryList } from "./GroceryList";
 import { MacrosPanel } from "./MacrosPanel";
-import { StepList } from "./StepList";
+import { CookCta } from "./CookCta";
 
 export function Results({ recipeId, zip, owned }: { recipeId: string; zip: string; owned: string[] }) {
   const [plan, setPlan] = useState<MealPlan | null>(null);
@@ -38,7 +38,7 @@ export function Results({ recipeId, zip, owned }: { recipeId: string; zip: strin
   return (
     <div className="flex flex-col gap-10">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight text-balance">{plan.title}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-balance">{plan.title}</h1>
         <p className="mt-2 text-sm text-muted">
           Prices near {plan.zip_code}
           {plan.source_url && (
@@ -55,7 +55,10 @@ export function Results({ recipeId, zip, owned }: { recipeId: string; zip: strin
       <CostSummary plan={plan} />
       <GroceryList plan={plan} />
       <MacrosPanel plan={plan} />
-      <StepList steps={plan.steps} />
+      <CookCta
+        steps={plan.steps}
+        href={`/recipes/${recipeId}/cook?${new URLSearchParams(ownedKey ? { zip, owned: ownedKey } : { zip })}`}
+      />
 
       <div className="flex flex-wrap gap-3 border-t border-border pt-6">
         <Link href={`/recipes/${recipeId}/pantry?zip=${zip}`} className="btn-secondary">

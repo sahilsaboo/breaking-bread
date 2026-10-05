@@ -799,6 +799,28 @@
             "type": "array",
             "title": "Terms",
             "default": []
+          },
+          "video_start_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Start Seconds"
+          },
+          "video_end_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video End Seconds"
           }
         },
         "type": "object",

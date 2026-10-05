@@ -17,6 +17,7 @@ Record each decision when it is made: what was decided, why, who decided, and th
 | 11 | Platform terms of service review (TikTok, Instagram) | Open | | Required before relying on content download | Team | |
 | 12 | API shape for long-running extraction | Decided | Background job + polling: `POST /recipes` returns a job, `GET /jobs/{id}` reports the stage, `POST /recipes/{id}/plan` builds results | Simpler to build and host than server-sent events or websockets; extraction takes 30–90s | Team | 2026-10-05 |
 | 13 | Transcription model size on the free tier | Open | | `faster-whisper` small used 1,477 MB (int8, CPU) in its README benchmark, too much for 512 MB. Spike: measure `tiny` and `base` on Render free. If neither fits, drop the audio stage for the MVP (caption + on-screen text + paste fallback) | Team | |
+| 14 | Visual design and step imagery | Proposed | Light pastel "Sky & sorbet" palette for everyone (no dark mode). Cook mode shows one step at a time with the source video beside it (pinned on top on phones), using TikTok's official embed player to jump to and loop each step's clip; steps carry `video_start_seconds`/`video_end_seconds`. Other imagery is Fluent Emoji (flat, MIT) illustrations. Extracted video frames are not shown | The official embed is the platform-sanctioned way to show the video, so it doesn't depend on #11; illustrations give a uniform look without a new image vendor. Instagram's embed can't seek, so Reels show a link instead | Brendan | 2026-10-05 |
 
 ## Notes on open items
 

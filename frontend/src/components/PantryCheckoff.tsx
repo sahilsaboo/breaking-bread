@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 
 import { api, ApiError, type Recipe } from "@/lib/api";
 import { amountLabel, SOURCE_LABELS } from "@/lib/format";
+import { ingredientIllustration, tintFor } from "@/lib/illustrations";
+
+import { Illustration } from "./Illustration";
 
 import { Notice } from "./Notice";
 
@@ -57,8 +60,8 @@ export function PantryCheckoff({ recipeId, zip }: { recipeId: string; zip: strin
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-sm font-medium text-accent">{recipe.title}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">What do you already have?</h1>
+        <p className="text-sm font-semibold text-sorbet-ink">{recipe.title}</p>
+        <h1 className="mt-1 text-2xl font-extrabold tracking-tight">What do you already have?</h1>
         <p className="mt-2 text-muted">
           Tap everything that&apos;s already in your kitchen. We&apos;ll leave it off your grocery list.
         </p>
@@ -72,16 +75,22 @@ export function PantryCheckoff({ recipeId, zip }: { recipeId: string; zip: strin
       )}
 
       <ul className="card flex flex-col divide-y divide-border p-0">
-        {recipe.ingredients.map((i) => {
+        {recipe.ingredients.map((i, n) => {
           const checked = owned.has(i.id);
           return (
             <li key={i.id}>
-              <label className="flex cursor-pointer items-start gap-3 px-5 py-4 hover:bg-accent-soft/50">
+              <label className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-accent-soft/50">
                 <input
                   type="checkbox"
-                  className="mt-1 size-5 shrink-0 accent-accent"
+                  className="size-5 shrink-0 accent-accent"
                   checked={checked}
                   onChange={() => toggle(i.id)}
+                />
+                <Illustration
+                  name={ingredientIllustration(i.name)}
+                  size={44}
+                  tint={tintFor(n)}
+                  className={checked ? "opacity-40 grayscale" : ""}
                 />
                 <span className="flex flex-1 flex-col gap-0.5">
                   <span className={`font-medium capitalize ${checked ? "text-muted line-through" : ""}`}>

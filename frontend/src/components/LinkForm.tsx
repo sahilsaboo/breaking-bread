@@ -61,7 +61,7 @@ export function LinkForm() {
         ) : (
           <button
             type="button"
-            className="text-sm font-medium text-accent underline-offset-4 hover:underline"
+            className="text-sm font-semibold text-accent-ink underline-offset-4 hover:underline"
             onClick={() => setShowPaste(true)}
           >
             No link? Paste the recipe text instead
