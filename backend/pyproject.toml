@@ -7,6 +7,11 @@ dependencies = [
     "fastapi>=0.142",
     "uvicorn[standard]>=0.54",
     "pydantic>=2.13",
+    # TikTok extraction needs browser impersonation (curl_cffi)
+    "yt-dlp[default,curl-cffi]>=2026.8.19",
+    "faster-whisper>=1.2.1",
+    # faster-whisper 1.2.1 passes av.open(metadata_errors=...), which PyAV 19 removed
+    "av<19",
 ]
 
 [project.optional-dependencies]
