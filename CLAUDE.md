@@ -2,10 +2,10 @@
 
 AI-powered cooking companion (web app) for college students early in off-campus apartment life who are new to cooking. A user pastes a TikTok or reel link and gets a meal they can shop for, afford, and cook.
 
-Full context: `docs/product-brief.md`. Decisions and open questions: `docs/decisions.md`.
+Full context: `docs/product-brief.md`. Build spec (pipeline, cost rules, schema, guidance rules): `docs/technical-spec.md`. Decisions and open questions: `docs/decisions.md`.
 
 ## Sprint MVP (three weeks): one end-to-end flow
-Pasted TikTok/reel link -> ingredients identified -> grocery list -> estimated meal cost -> per-meal macros -> step-by-step beginner cooking guidance. Delivered as a web app.
+Pasted TikTok/reel link -> ingredients extracted -> ZIP code -> user checks off ingredients they own -> grocery list with prices, trip cost and per-meal cost -> per-serving macros -> step-by-step beginner cooking guidance. Delivered as a web app. TikTok must work for the demo; Instagram Reels is best effort.
 
 Success = this flow works reliably end to end. Prioritize work that completes the flow over polishing any one step.
 
@@ -18,23 +18,25 @@ Success = this flow works reliably end to end. Prioritize work that completes th
 - Differentiator is integrated budgeting plus beginner guidance. Macros are supporting value.
 - When design choices conflict, favor cost clarity and simplicity.
 - All user-facing copy and guidance must be beginner-friendly: plain words, no assumed kitchen knowledge, short steps.
-- Cost is always an estimate. Show it as approximate and never present it as exact.
+- Cost is always an estimate. Each item's price is tagged `store price` or `estimate`, and totals are always shown as approximate (e.g. "~$8.40"), never as exact.
 
 ## Open decisions: do not assume answers
 These are unresolved (see `docs/decisions.md`). Propose options with tradeoffs and ask before committing:
-- Grocery price data source, and how accurate cost estimates can be
-- Macronutrient data source
-- Reliability of ingredient extraction from links (captions may lack ingredients; platform access and terms of service may restrict it)
-- Hosting for frontend and backend
+- Grocery price data source (demo is in Boston/Cambridge, where Kroger has no stores). Research and verify Boston-area coverage before proposing a source.
+- Specific backend host (Render, Railway, or Fly.io)
+- TikTok and Instagram terms of service for content download
 When a decision is made, record it in `docs/decisions.md`.
 
 ## Tech stack
 - Frontend: Next.js (TypeScript) in `frontend/`. UI only: link input, results view (grocery list, cost, macros), step-by-step cooking view.
 - Backend: Python FastAPI in `backend/`. Owns the whole pipeline: link -> content extraction -> Claude API structuring -> price and macro lookup -> response.
-- LLM: Claude API. Ask for JSON and validate it against Pydantic models. One shared schema covers ingredients, grocery list, cost, macros, and steps.
-- Price and macro data: behind adapter interfaces (e.g. `get_price(item)`, `get_macros(item)`), stubbed until sources are decided. Don't hardcode a vendor.
-- No database or auth this sprint. The flow is stateless. Flag it before adding either.
-- Required fallback: the user can paste caption or ingredient text when link extraction fails.
+- Extraction: `yt-dlp` metadata/caption first, then `ffmpeg` audio + `faster-whisper` transcription, then sampled frames to Claude vision; stop early once the recipe is complete.
+- LLM: Claude API. Ask for JSON and validate it against Pydantic models. One shared schema (see `docs/technical-spec.md`) covers ingredients, grocery list, cost, macros, and steps.
+- Macros: USDA FoodData Central, behind a `get_macros` adapter.
+- Prices: behind a `get_price` adapter, stubbed until the source is decided. Don't hardcode a vendor.
+- Cache: SQLite for extraction results (by canonical URL) and USDA `fdcId` mappings. Demo reels are also committed as JSON fixtures loaded at startup. No auth, accounts, or stored user data; flag it before adding any.
+- Required fallback: when link extraction fails, show a clear error and let the user paste caption or ingredient text.
+- Hosting: frontend on Vercel; backend on a long-running host (Render, Railway, or Fly.io).
 
 ## Conventions
 - Frontend talks to the backend over HTTP/JSON only. No business logic in the frontend.
