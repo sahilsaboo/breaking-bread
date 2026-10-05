@@ -126,6 +126,28 @@ Open http://localhost:3000 and paste any TikTok link. The API docs are at http:/
 cd backend && .venv/bin/pytest
 ```
 
+### On Windows
+
+The commands above are for macOS and Linux. On Windows, use PowerShell and [uv](https://docs.astral.sh/uv/), which installs Python 3.12 for you:
+
+```powershell
+# One-time installs (restart your terminal afterwards so they're on PATH)
+winget install astral-sh.uv
+winget install Gyan.FFmpeg   # not needed until the real audio/frame stages land
+
+# Backend
+cd backend
+uv venv --python 3.12 .venv
+uv pip install --python .venv\Scripts\python.exe -e ".[dev]"
+Copy-Item .env.example .env   # add your API keys
+.venv\Scripts\uvicorn app.main:app --reload
+
+# Tests
+.venv\Scripts\pytest
+```
+
+The frontend commands are the same on every platform. In Claude Code, the `backend-windows` entry in `.claude/launch.json` starts the backend.
+
 **API keys you'll need:** Claude API and USDA FoodData Central (free from [api.data.gov](https://api.data.gov/signup/)). Keep real keys in `.env` and never commit them.
 
 ## Deploying
