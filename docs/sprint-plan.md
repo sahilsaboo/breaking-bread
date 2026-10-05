@@ -10,7 +10,7 @@ Get a stubbed version of the whole flow working end to end in week 1, then repla
 
 **Contract first.** On day 1, write the Pydantic models from the schema in `technical-spec.md`. Generate the frontend's TypeScript types from FastAPI's OpenAPI output so the two sides share one source of truth.
 
-**API shape (Open: polling vs. streaming).** Extraction takes 30–90 seconds, so it runs as a background job:
+**API shape (polling, implemented in the skeleton; switch to streaming only if needed).** Extraction takes 30–90 seconds, so it runs as a background job:
 
 | Endpoint | Purpose |
 |---|---|
@@ -22,7 +22,7 @@ Polling is proposed because it is simpler to build and deploy than server-sent e
 
 **Backend steps.** `extract → structure → plan` (price matching, cost math, macros, guidance). Each step is its own module, and each external service sits behind its own adapter.
 
-**Layout (Open: confirm).** `frontend/` and `backend/` side by side in this repo, as `CLAUDE.md` assumes.
+**Layout.** `frontend/` and `backend/` side by side in this repo.
 
 ## Tracks
 
@@ -37,10 +37,10 @@ Owners are **Open**.
 ## Timeline
 
 ### Week 1: skeleton running, early answers to risky questions
-- [ ] Set up the repo, Pydantic models, a stubbed API, and generated TypeScript types
-- [ ] All five screens built against a sample result
+- [x] Set up the repo, Pydantic models, a stubbed API, and generated TypeScript types
+- [x] All five screens built against a sample result
 - [ ] Caption extraction (`yt-dlp` metadata) and the paste-text fallback working for real
-- [ ] Unit conversion and cost math, with tests
+- [ ] Unit conversion and cost math, with tests (cost math done; unit conversion still to do)
 - [ ] USDA FoodData Central adapter
 - [ ] **Spike: pricing source** for Boston coverage, ending in a decision for `decisions.md` #1
 - [ ] **Spike: backend host.** Deploy `yt-dlp`, `ffmpeg`, and `faster-whisper` and confirm they fit its memory and time limits (#8)

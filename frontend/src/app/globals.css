@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/* Warm, bakery-inspired palette. Every color is a token so dark mode only
+   has to redefine the variables. */
+:root {
+  --background: #fbf7f0;
+  --foreground: #2b2118;
+  --muted: #6f6152;
+  --card: #ffffff;
+  --border: #eadfce;
+  --accent: #b4530f;
+  --accent-hover: #963f06;
+  --accent-fg: #ffffff;
+  --accent-soft: #fbeedd;
+  --success: #2f7a4a;
+  --success-soft: #e6f4ea;
+  --warn: #8a5a00;
+  --warn-soft: #fff4dc;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --info: #1f5f8b;
+  --info-soft: #e7f1f8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1a1511;
+    --foreground: #f3ebe0;
+    --muted: #b3a492;
+    --card: #241d17;
+    --border: #3a2f25;
+    --accent: #f0913f;
+    --accent-hover: #f6a965;
+    --accent-fg: #1a1511;
+    --accent-soft: #3a2615;
+    --success: #7fd19a;
+    --success-soft: #1d3326;
+    --warn: #f3c56b;
+    --warn-soft: #3a2d12;
+    --danger: #ff8a7f;
+    --danger-soft: #3d1c19;
+    --info: #8cc4ea;
+    --info-soft: #182c3a;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 font-semibold text-accent-fg transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2 font-medium transition-colors hover:bg-accent-soft disabled:opacity-50;
+  }
+  .input {
+    @apply w-full rounded-xl border border-border bg-card px-4 py-3 text-base outline-none placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/30;
+  }
+  .card {
+    @apply rounded-2xl border border-border bg-card p-5;
+  }
+}
