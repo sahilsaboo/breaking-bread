@@ -73,3 +73,9 @@ def plan_recipe(recipe_id: str, body: PlanRequest) -> MealPlan:
 
 
 app.include_router(router)
+
+# Temporary: hosting spike for decision #13. Only exists when SPIKE_TOKEN is set.
+if os.environ.get("SPIKE_TOKEN"):
+    from app.spike_routes import router as spike_router
+
+    app.include_router(spike_router)

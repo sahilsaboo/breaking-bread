@@ -22,3 +22,7 @@ services:
         value: 3.12.15
       - key: STUB_STAGE_SECONDS
         value: "1.5"
+      # Temporary: enables /api/spike (decision #13). Render prompts for the
+      # value; leave it empty to keep the spike routes switched off.
+      - key: SPIKE_TOKEN
+        sync: false
