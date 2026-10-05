@@ -6,10 +6,10 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/health": {
+    "/api/health": {
       "get": {
         "summary": "Health",
-        "operationId": "health_health_get",
+        "operationId": "health_api_health_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -20,7 +20,7 @@
                     "type": "string"
                   },
                   "type": "object",
-                  "title": "Response Health Health Get"
+                  "title": "Response Health Api Health Get"
                 }
               }
             }
@@ -28,11 +28,11 @@
         }
       }
     },
-    "/recipes": {
+    "/api/recipes": {
       "post": {
         "summary": "Create Recipe",
         "description": "Start extraction from a link or pasted text. Poll the returned job.",
-        "operationId": "create_recipe_recipes_post",
+        "operationId": "create_recipe_api_recipes_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -67,10 +67,10 @@
         }
       }
     },
-    "/jobs/{job_id}": {
+    "/api/jobs/{job_id}": {
       "get": {
         "summary": "Get Job",
-        "operationId": "get_job_jobs__job_id__get",
+        "operationId": "get_job_api_jobs__job_id__get",
         "parameters": [
           {
             "name": "job_id",
@@ -106,10 +106,10 @@
         }
       }
     },
-    "/recipes/{recipe_id}": {
+    "/api/recipes/{recipe_id}": {
       "get": {
         "summary": "Get Recipe",
-        "operationId": "get_recipe_recipes__recipe_id__get",
+        "operationId": "get_recipe_api_recipes__recipe_id__get",
         "parameters": [
           {
             "name": "recipe_id",
@@ -145,10 +145,10 @@
         }
       }
     },
-    "/recipes/{recipe_id}/plan": {
+    "/api/recipes/{recipe_id}/plan": {
       "post": {
         "summary": "Plan Recipe",
-        "operationId": "plan_recipe_recipes__recipe_id__plan_post",
+        "operationId": "plan_recipe_api_recipes__recipe_id__plan_post",
         "parameters": [
           {
             "name": "recipe_id",
