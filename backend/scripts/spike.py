@@ -75,6 +75,7 @@ def download(url: str, workdir: Path) -> dict:
         "outtmpl": str(workdir / "video.%(ext)s"),
         "noplaylist": True,
         "quiet": True,
+        "noprogress": True,
         "no_warnings": False,
     }
     start = time.monotonic()
@@ -106,7 +107,9 @@ def transcribe_child(model: str, audio: str) -> None:
     start = time.monotonic()
     whisper = WhisperModel(model, device="cpu", compute_type="int8")
     loaded = time.monotonic()
-    segments, info = whisper.transcribe(audio, beam_size=5)
+    # vad_filter skips non-speech. Without it, music-only reels produce
+    # confident nonsense (including invented quantities) in a random language.
+    segments, info = whisper.transcribe(audio, beam_size=5, vad_filter=True)
     text = " ".join(s.text.strip() for s in segments)  # segments are lazy; this runs the model
     done = time.monotonic()
     print(
@@ -115,7 +118,9 @@ def transcribe_child(model: str, audio: str) -> None:
                 "load_s": round(loaded - start, 1),
                 "transcribe_s": round(done - loaded, 1),
                 "language": info.language,
+                "language_probability": round(info.language_probability, 2),
                 "audio_duration_s": round(info.duration, 1),
+                "speech_s": round(info.duration_after_vad, 1),
                 "text_preview": text[:300],
             }
         )
@@ -174,7 +179,8 @@ def summarize(report: dict) -> str:
         if t["ok"]:
             lines.append(
                 f"  {t['model']:<6} peak {t['peak_mb']} MB | load {t['load_s']}s | "
-                f"transcribe {t['transcribe_s']}s for {t['audio_duration_s']}s of audio"
+                f"transcribe {t['transcribe_s']}s for {t['audio_duration_s']}s of audio "
+                f"({t['speech_s']}s speech)"
             )
         else:
             lines.append(f"  {t['model']:<6} FAILED (peak {t['peak_mb']} MB): {t['error']}")
