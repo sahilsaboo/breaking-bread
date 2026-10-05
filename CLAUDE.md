@@ -44,9 +44,19 @@ When a decision is made, record it in `docs/decisions.md`.
 - Keep the backend pipeline as separate, testable steps (extract, structure, price, macros, guidance) so each can be swapped or debugged alone.
 
 ## Commands
-TODO: confirm after scaffolding. Expected defaults:
-- Frontend: `cd frontend && npm run dev`
-- Backend: `cd backend && uvicorn app.main:app --reload`
+- Backend setup (Python 3.12): `cd backend && python3.12 -m venv .venv && .venv/bin/pip install -e ".[dev]"`
+- Backend dev server: `cd backend && .venv/bin/uvicorn app.main:app --reload` (http://localhost:8000, docs at /docs)
+- Backend tests: `cd backend && .venv/bin/pytest`
+- Frontend: `cd frontend && npm install && npm run dev` (http://localhost:3000)
+- Frontend checks: `cd frontend && npm run lint && npx tsc --noEmit`
+- After changing `backend/app/models.py` or routes: `cd backend && .venv/bin/python scripts/export_openapi.py`, then `cd frontend && npm run gen:api`. Commit both `backend/openapi.json` and `frontend/src/lib/api-types.ts`.
+
+## Current state (walking skeleton)
+- Every pipeline stage is a stub backed by `backend/app/fixtures/sample_recipe.json`. Stub code is marked `STUB:`.
+- Extraction progress is simulated (one stage every `STUB_STAGE_SECONDS`). A link containing `stub-fail` fails on purpose, to exercise the error and paste-text fallback.
+- Jobs and recipes live in memory and disappear on restart, until the SQLite cache lands.
+- Cost math in `backend/app/costs.py` is real and tested. Prices themselves are stub estimates.
+- Keep the repo outside iCloud-synced folders such as `~/Documents`: syncing `.venv` and `node_modules` makes imports and tests hang.
 
 ## Team
 Sarah Fattah, Sahil Saboo, Brendan Shemer (AI Builder Space Proseminar).

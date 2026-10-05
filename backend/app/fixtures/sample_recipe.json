@@ -1,0 +1,123 @@
+{
+  "recipe": {
+    "id": "sample-garlic-chicken-pasta",
+    "source_url": "https://www.tiktok.com/@example/video/0000000000000000000",
+    "title": "Creamy Garlic Chicken Pasta",
+    "creator": "@example",
+    "servings": { "value": 2, "estimated": true },
+    "ingredients": [
+      {
+        "id": "chicken", "name": "chicken breast", "quantity": 1, "unit": "lb", "grams": 454,
+        "estimated": false, "source": "caption", "confidence": 0.95
+      },
+      {
+        "id": "pasta", "name": "penne pasta", "quantity": 200, "unit": "g", "grams": 200,
+        "estimated": false, "source": "caption", "confidence": 0.9
+      },
+      {
+        "id": "garlic", "name": "garlic", "quantity": 3, "unit": "clove", "grams": 9,
+        "estimated": false, "source": "transcript", "confidence": 0.85
+      },
+      {
+        "id": "butter", "name": "butter", "quantity": 2, "unit": "tbsp", "grams": 28,
+        "estimated": false, "source": "frames", "confidence": 0.8
+      },
+      {
+        "id": "cream", "name": "heavy cream", "quantity": 1, "unit": "cup", "grams": 238,
+        "estimated": false, "source": "caption", "confidence": 0.9
+      },
+      {
+        "id": "parmesan", "name": "grated parmesan", "quantity": 0.5, "unit": "cup", "grams": 50,
+        "estimated": false, "source": "frames", "confidence": 0.75
+      },
+      {
+        "id": "spinach", "name": "baby spinach", "quantity": 2, "unit": "cup", "grams": 60,
+        "estimated": true, "source": "frames", "confidence": 0.55
+      },
+      {
+        "id": "olive-oil", "name": "olive oil", "quantity": 1, "unit": "tbsp", "grams": 14,
+        "estimated": true, "source": "transcript", "confidence": 0.7
+      },
+      {
+        "id": "salt", "name": "salt", "quantity": null, "unit": "to taste", "grams": 3,
+        "estimated": true, "source": "inferred", "confidence": 0.6
+      },
+      {
+        "id": "pepper", "name": "black pepper", "quantity": null, "unit": "to taste", "grams": 1,
+        "estimated": true, "source": "inferred", "confidence": 0.6
+      }
+    ]
+  },
+  "products": {
+    "chicken":   { "product_name": "Boneless Skinless Chicken Breast, 1 lb", "package_size_grams": 454, "package_price": 5.49 },
+    "pasta":     { "product_name": "Penne Pasta, 16 oz",                     "package_size_grams": 454, "package_price": 1.49 },
+    "garlic":    { "product_name": "Garlic Bulb",                            "package_size_grams": 50,  "package_price": 0.79 },
+    "butter":    { "product_name": "Unsalted Butter, 4 sticks",              "package_size_grams": 454, "package_price": 4.99 },
+    "cream":     { "product_name": "Heavy Cream, 1 pint",                    "package_size_grams": 473, "package_price": 3.99 },
+    "parmesan":  { "product_name": "Grated Parmesan, 8 oz",                  "package_size_grams": 227, "package_price": 3.79 },
+    "spinach":   { "product_name": "Baby Spinach, 5 oz",                     "package_size_grams": 142, "package_price": 2.99 },
+    "olive-oil": { "product_name": "Olive Oil, 16.9 fl oz",                  "package_size_grams": 500, "package_price": 6.49 },
+    "salt":      { "product_name": "Table Salt, 26 oz",                      "package_size_grams": 737, "package_price": 1.29 },
+    "pepper":    { "product_name": "Ground Black Pepper, 3 oz",              "package_size_grams": 85,  "package_price": 2.99 }
+  },
+  "steps": [
+    {
+      "order": 1,
+      "instruction": "Fill your pot about three-quarters with water. Add a big pinch of salt and bring it to a rolling boil over high heat.",
+      "doneness_cue": "Big bubbles keep breaking the surface, even when you stir.",
+      "terms": [{ "term": "rolling boil", "definition": "Water bubbling hard enough that stirring doesn't stop it." }]
+    },
+    {
+      "order": 2,
+      "instruction": "Pat the chicken dry with a paper towel. Cut it into 1-inch pieces.",
+      "safety_note": "Raw chicken can carry bacteria. Wash your hands, knife, and cutting board with hot soapy water before touching anything else, and don't cut vegetables on the same board until it's washed."
+    },
+    {
+      "order": 3,
+      "instruction": "Heat the olive oil in your skillet over medium-high heat. Add the chicken, season it with salt and pepper, and sear it, turning the pieces now and then.",
+      "timer_seconds": 420,
+      "doneness_cue": "No pink left inside a cut-open piece, and the outside is golden.",
+      "safety_note": "Chicken is safe at 165°F inside. If you have a thermometer, check the thickest piece.",
+      "terms": [{ "term": "sear", "definition": "Cook in a hot pan without moving the food much, so the outside browns." }]
+    },
+    {
+      "order": 4,
+      "instruction": "Move the chicken to a plate. Add the pasta to the boiling water and cook it until it's al dente.",
+      "timer_seconds": 600,
+      "doneness_cue": "Bite a piece: it should be soft with a tiny bit of firmness in the center.",
+      "terms": [{ "term": "al dente", "definition": "Cooked through but still a little firm when you bite it." }]
+    },
+    {
+      "order": 5,
+      "instruction": "Scoop out half a cup of the pasta water with a mug and set it aside. Then drain the pasta.",
+      "equipment_swap": "No colander? Hold the pot lid slightly open over the pot and carefully tip the water into the sink, keeping the pasta in."
+    },
+    {
+      "order": 6,
+      "instruction": "Turn the skillet down to medium. Melt the butter, then add the minced garlic and stir it.",
+      "timer_seconds": 60,
+      "doneness_cue": "The garlic smells strong and is just turning light golden. Don't let it go brown, or it turns bitter.",
+      "terms": [{ "term": "minced", "definition": "Chopped into very tiny pieces." }]
+    },
+    {
+      "order": 7,
+      "instruction": "Pour in the cream and stir in the parmesan. Let it simmer until it thickens a little.",
+      "timer_seconds": 180,
+      "doneness_cue": "The sauce coats the back of a spoon instead of running right off.",
+      "terms": [{ "term": "simmer", "definition": "Small, gentle bubbles. Lower the heat if it starts boiling hard." }]
+    },
+    {
+      "order": 8,
+      "instruction": "Add the spinach, pasta, and chicken. Stir until the spinach wilts. If the sauce is too thick, splash in some saved pasta water.",
+      "timer_seconds": 120,
+      "doneness_cue": "The spinach is soft and dark green, and everything is hot.",
+      "terms": [{ "term": "wilts", "definition": "Leafy greens shrink and go soft from the heat." }]
+    },
+    {
+      "order": 9,
+      "instruction": "Serve right away.",
+      "safety_note": "Put leftovers in the fridge within 2 hours and eat them within 3 to 4 days. Reheat until steaming hot (165°F)."
+    }
+  ],
+  "macros_per_serving": { "calories": 1316, "protein_g": 78, "carbs_g": 80, "fat_g": 76 }
+}

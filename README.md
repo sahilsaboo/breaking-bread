@@ -85,8 +85,11 @@ Each external service sits behind its own adapter so it can be swapped out or mo
 
 ```
 breaking-bread/
-├── frontend/              # Next.js app (UI only)
+├── frontend/              # Next.js app (UI only); API types generated from backend/openapi.json
 ├── backend/               # FastAPI pipeline: extract → structure → price → macros → guidance
+│   ├── app/models.py      # Shared data contract (Pydantic)
+│   ├── app/pipeline/      # One module per pipeline step
+│   └── app/fixtures/      # Sample recipe used by the stubs
 ├── docs/
 │   ├── product-brief.md   # The idea, the user, and sprint scope
 │   ├── technical-spec.md  # Pipeline, cost rules, schema, guidance rules
@@ -94,17 +97,19 @@ breaking-bread/
 └── CLAUDE.md              # Project context for Claude Code
 ```
 
-> `frontend/` and `backend/` haven't been created yet.
+> The backend is a walking skeleton: every stage returns a sample recipe until the real pipeline lands.
 
 ## Getting started
 
-> 🚧 The commands below are the expected defaults. They'll be confirmed once the project is set up.
+You'll need Python 3.12 and Node.js 20+. Keep the repo out of iCloud-synced folders (like `~/Documents`), or installs and tests can hang.
 
 ```bash
 # Backend
 cd backend
+python3.12 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
 cp .env.example .env   # add your API keys
-uvicorn app.main:app --reload
+.venv/bin/uvicorn app.main:app --reload
 ```
 
 ```bash
@@ -112,6 +117,13 @@ uvicorn app.main:app --reload
 cd frontend
 npm install
 npm run dev
+```
+
+Open http://localhost:3000 and paste any TikTok link. The API docs are at http://localhost:8000/docs.
+
+```bash
+# Tests
+cd backend && .venv/bin/pytest
 ```
 
 **API keys you'll need:** Claude API and USDA FoodData Central (free from [api.data.gov](https://api.data.gov/signup/)). Keep real keys in `.env` and never commit them.

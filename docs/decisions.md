@@ -15,6 +15,7 @@ Record each decision when it is made: what was decided, why, who decided, and th
 | 9 | Caching / storage | Decided | SQLite cache for extraction results (by canonical URL) and fdcId mappings; demo reels committed as JSON fixtures loaded at startup. No accounts or user data | Repeat pastes return instantly; demo must not depend on platform availability or a persistent disk | Team | 2026-10-05 |
 | 10 | Core flow steps | Decided | Add ZIP code step and pantry checkoff step; results show trip cost and per-meal cost side by side | Checkoff catches extraction errors and makes trip cost meaningful; ZIP enables local pricing | Team | 2026-10-05 |
 | 11 | Platform terms of service review (TikTok, Instagram) | Open | | Required before relying on content download | Team | |
+| 12 | API shape for long-running extraction | Decided | Background job + polling: `POST /recipes` returns a job, `GET /jobs/{id}` reports the stage, `POST /recipes/{id}/plan` builds results | Simpler to build and host than server-sent events or websockets; extraction takes 30–90s | Team | 2026-10-05 |
 
 ## Notes on open items
 
