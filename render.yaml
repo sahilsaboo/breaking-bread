@@ -1,0 +1,24 @@
+# Render Blueprint for the backend (free tier). The frontend deploys on Vercel
+# and forwards /api/* here via its BACKEND_URL setting.
+#
+# Free tier limits to plan around (docs/decisions.md #8, #9):
+# - 512 MB RAM, so only the smallest faster-whisper models may fit
+# - Spins down after 15 minutes without traffic; waking takes about a minute
+# - Disk is wiped on every restart, redeploy, or spin-down, so the SQLite
+#   cache is best-effort and demo reels rely on committed fixtures
+services:
+  - type: web
+    name: breaking-bread-api
+    runtime: python
+    plan: free
+    region: virginia
+    rootDir: backend
+    buildCommand: pip install .
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.15
+      - key: STUB_STAGE_SECONDS
+        value: "1.5"

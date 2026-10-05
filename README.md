@@ -72,12 +72,12 @@ Prices vary by store and change over time, so Breaking Bread never presents cost
 | Layer | Choice |
 |---|---|
 | Frontend | Next.js (React, TypeScript), deployed on Vercel |
-| Backend | Python + FastAPI on a host that allows long-running requests (Render, Railway, or Fly.io; specific host still to be chosen) |
+| Backend | Python + FastAPI on Render's free tier |
 | Extraction | `yt-dlp` for captions and video download, `ffmpeg` for audio and frames, `faster-whisper` for transcription, Claude vision for text shown in the video |
 | Structuring | Claude API, with JSON output validated against Pydantic models |
 | Nutrition | USDA FoodData Central |
 | Prices | To be decided, behind a `get_price` adapter (see [decision log](docs/decisions.md)) |
-| Cache | SQLite, plus committed demo fixtures |
+| Cache | SQLite (best-effort on the free host), plus committed demo fixtures |
 
 Each external service sits behind its own adapter so it can be swapped out or mocked in tests.
 
@@ -131,7 +131,9 @@ cd backend && .venv/bin/pytest
 ## Deploying
 
 - **Frontend (Vercel):** import the repo, set **Root Directory** to `frontend`, and set the `BACKEND_URL` environment variable to the backend's public URL. Next.js forwards `/api/*` to it, so the site runs on one domain.
-- **Backend:** a long-running host (Render, Railway, or Fly.io; still to be chosen). It needs Python 3.12, plus `ffmpeg` once real extraction lands.
+- **Backend (Render, free tier):** in Render, choose **New → Blueprint** and select this repo. It reads [`render.yaml`](render.yaml). Copy the service URL into Vercel's `BACKEND_URL`, then redeploy the frontend.
+  - The free tier sleeps after 15 minutes without traffic and takes about a minute to wake. Open the site a few minutes before a demo.
+  - The disk is wiped on every restart, so cached results don't persist. Demo reels come from committed fixtures.
 
 ## Sprint scope
 
@@ -144,7 +146,7 @@ This three-week sprint builds **one end-to-end flow**: from a pasted link to a m
 ## Open questions
 
 - 💲 **Grocery price source.** The demo is in Boston, where Kroger has no stores. We're looking for a source with local coverage.
-- ☁️ **Backend host:** Render, Railway, or Fly.io.
+- 🎙️ **Transcription on a free host:** does a small speech-to-text model fit in 512 MB?
 - 📜 **Terms of service** review for TikTok and Instagram.
 - 🔍 **Competitor check** of Samsung Food, Paprika, AnyList, and Plan to Eat.
 
