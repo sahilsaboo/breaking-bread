@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/health": {
+    "/api/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,7 +12,7 @@ export interface paths {
             cookie?: never;
         };
         /** Health */
-        get: operations["health_health_get"];
+        get: operations["health_api_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recipes": {
+    "/api/recipes": {
         parameters: {
             query?: never;
             header?: never;
@@ -34,14 +34,14 @@ export interface paths {
          * Create Recipe
          * @description Start extraction from a link or pasted text. Poll the returned job.
          */
-        post: operations["create_recipe_recipes_post"];
+        post: operations["create_recipe_api_recipes_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/jobs/{job_id}": {
+    "/api/jobs/{job_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -49,7 +49,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Job */
-        get: operations["get_job_jobs__job_id__get"];
+        get: operations["get_job_api_jobs__job_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -58,7 +58,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recipes/{recipe_id}": {
+    "/api/recipes/{recipe_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -66,7 +66,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Recipe */
-        get: operations["get_recipe_recipes__recipe_id__get"];
+        get: operations["get_recipe_api_recipes__recipe_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -75,7 +75,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recipes/{recipe_id}/plan": {
+    "/api/recipes/{recipe_id}/plan": {
         parameters: {
             query?: never;
             header?: never;
@@ -85,7 +85,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Plan Recipe */
-        post: operations["plan_recipe_recipes__recipe_id__plan_post"];
+        post: operations["plan_recipe_api_recipes__recipe_id__plan_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -345,7 +345,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    health_health_get: {
+    health_api_health_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -367,7 +367,7 @@ export interface operations {
             };
         };
     };
-    create_recipe_recipes_post: {
+    create_recipe_api_recipes_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -400,7 +400,7 @@ export interface operations {
             };
         };
     };
-    get_job_jobs__job_id__get: {
+    get_job_api_jobs__job_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -431,7 +431,7 @@ export interface operations {
             };
         };
     };
-    get_recipe_recipes__recipe_id__get: {
+    get_recipe_api_recipes__recipe_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -462,7 +462,7 @@ export interface operations {
             };
         };
     };
-    plan_recipe_recipes__recipe_id__plan_post: {
+    plan_recipe_api_recipes__recipe_id__plan_post: {
         parameters: {
             query?: never;
             header?: never;

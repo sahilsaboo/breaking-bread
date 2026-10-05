@@ -119,7 +119,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 and paste any TikTok link. The API docs are at http://localhost:8000/docs.
+Open http://localhost:3000 and paste any TikTok link. The API docs are at http://localhost:8000/api/docs.
 
 ```bash
 # Tests
@@ -127,6 +127,11 @@ cd backend && .venv/bin/pytest
 ```
 
 **API keys you'll need:** Claude API and USDA FoodData Central (free from [api.data.gov](https://api.data.gov/signup/)). Keep real keys in `.env` and never commit them.
+
+## Deploying
+
+- **Frontend (Vercel):** import the repo, set **Root Directory** to `frontend`, and set the `BACKEND_URL` environment variable to the backend's public URL. Next.js forwards `/api/*` to it, so the site runs on one domain.
+- **Backend:** a long-running host (Render, Railway, or Fly.io; still to be chosen). It needs Python 3.12, plus `ffmpeg` once real extraction lands.
 
 ## Sprint scope
 

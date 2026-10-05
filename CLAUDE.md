@@ -36,7 +36,8 @@ When a decision is made, record it in `docs/decisions.md`.
 - Prices: behind a `get_price` adapter, stubbed until the source is decided. Don't hardcode a vendor.
 - Cache: SQLite for extraction results (by canonical URL) and USDA `fdcId` mappings. Demo reels are also committed as JSON fixtures loaded at startup. No auth, accounts, or stored user data; flag it before adding any.
 - Required fallback: when link extraction fails, show a clear error and let the user paste caption or ingredient text.
-- Hosting: frontend on Vercel; backend on a long-running host (Render, Railway, or Fly.io).
+- Hosting: frontend on Vercel; backend on a long-running host (Render, Railway, or Fly.io). Not Vercel Services: backend functions don't share memory or allow long-running extraction.
+- Routing: every backend route lives under `/api`. The browser only calls `/api/*` on the frontend's own domain, and `frontend/next.config.ts` forwards it to `BACKEND_URL` (default http://localhost:8000).
 
 ## Conventions
 - Frontend talks to the backend over HTTP/JSON only. No business logic in the frontend.
@@ -45,7 +46,7 @@ When a decision is made, record it in `docs/decisions.md`.
 
 ## Commands
 - Backend setup (Python 3.12): `cd backend && python3.12 -m venv .venv && .venv/bin/pip install -e ".[dev]"`
-- Backend dev server: `cd backend && .venv/bin/uvicorn app.main:app --reload` (http://localhost:8000, docs at /docs)
+- Backend dev server: `cd backend && .venv/bin/uvicorn app.main:app --reload` (http://localhost:8000, docs at /api/docs)
 - Backend tests: `cd backend && .venv/bin/pytest`
 - Frontend: `cd frontend && npm install && npm run dev` (http://localhost:3000)
 - Frontend checks: `cd frontend && npm run lint && npx tsc --noEmit`

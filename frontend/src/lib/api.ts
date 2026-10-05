@@ -13,7 +13,8 @@ export type Step = Schemas["Step"];
 export type CreateRecipeRequest = Schemas["CreateRecipeRequest"];
 export type PlanRequest = Schemas["PlanRequest"];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Same-origin path; next.config.ts forwards /api/* to the backend.
+const API_URL = "/api";
 
 export class ApiError extends Error {
   constructor(
@@ -46,6 +47,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError("Can't reach Breaking Bread right now. Is the backend running?", 0);
   }
   const body = await res.json().catch(() => null);
+  // A non-JSON 5xx means the /api forwarding couldn't reach the backend.
+  if (res.status >= 500 && body === null) {
+    throw new ApiError("Can't reach Breaking Bread right now. Is the backend running?", res.status);
+  }
   if (!res.ok) throw new ApiError(errorMessage(body), res.status);
   return body as T;
 }

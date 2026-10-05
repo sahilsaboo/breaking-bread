@@ -17,9 +17,9 @@ def client():
 
 
 def finished_job(client, **body):
-    created = client.post("/recipes", json=body)
+    created = client.post("/api/recipes", json=body)
     assert created.status_code == 202
-    return client.get(f"/jobs/{created.json()['job_id']}").json()
+    return client.get(f"/api/jobs/{created.json()['job_id']}").json()
 
 
 @pytest.mark.parametrize(
@@ -27,7 +27,7 @@ def finished_job(client, **body):
     [TIKTOK, "https://vm.tiktok.com/ZMabc/", "https://www.instagram.com/reel/Cabc123/"],
 )
 def test_accepts_supported_links(client, url):
-    assert client.post("/recipes", json={"url": url}).status_code == 202
+    assert client.post("/api/recipes", json={"url": url}).status_code == 202
 
 
 @pytest.mark.parametrize(
@@ -35,12 +35,12 @@ def test_accepts_supported_links(client, url):
     ["not a link", "https://youtube.com/watch?v=1", "https://www.instagram.com/someuser/"],
 )
 def test_rejects_unsupported_links(client, url):
-    assert client.post("/recipes", json={"url": url}).status_code == 422
+    assert client.post("/api/recipes", json={"url": url}).status_code == 422
 
 
 def test_requires_exactly_one_input(client):
-    assert client.post("/recipes", json={}).status_code == 422
-    assert client.post("/recipes", json={"url": TIKTOK, "text": "eggs"}).status_code == 422
+    assert client.post("/api/recipes", json={}).status_code == 422
+    assert client.post("/api/recipes", json={"url": TIKTOK, "text": "eggs"}).status_code == 422
 
 
 def test_link_job_runs_all_stages_and_returns_recipe(client):
@@ -49,7 +49,7 @@ def test_link_job_runs_all_stages_and_returns_recipe(client):
     assert job["completed_stages"] == ["metadata", "audio", "frames", "merge"]
     assert job["stages"] == job["completed_stages"]
 
-    recipe = client.get(f"/recipes/{job['recipe_id']}").json()
+    recipe = client.get(f"/api/recipes/{job['recipe_id']}").json()
     assert recipe["source_url"] == TIKTOK
     assert len(recipe["ingredients"]) > 0
 
@@ -58,7 +58,7 @@ def test_pasted_text_skips_to_merge_and_tags_source(client):
     job = finished_job(client, text="1 lb chicken, 200g penne")
     assert job["completed_stages"] == ["merge"]
 
-    recipe = client.get(f"/recipes/{job['recipe_id']}").json()
+    recipe = client.get(f"/api/recipes/{job['recipe_id']}").json()
     assert {i["source"] for i in recipe["ingredients"]} == {"pasted"}
 
 
@@ -71,9 +71,9 @@ def test_failed_extraction_reports_error(client):
 def test_plan_removes_owned_items_from_grocery_list(client):
     recipe_id = finished_job(client, url=TIKTOK)["recipe_id"]
 
-    full = client.post(f"/recipes/{recipe_id}/plan", json={"zip_code": "02139"}).json()
+    full = client.post(f"/api/recipes/{recipe_id}/plan", json={"zip_code": "02139"}).json()
     owned = client.post(
-        f"/recipes/{recipe_id}/plan",
+        f"/api/recipes/{recipe_id}/plan",
         json={"zip_code": "02139", "owned_ingredient_ids": ["salt", "pepper"]},
     ).json()
 
@@ -87,7 +87,7 @@ def test_plan_removes_owned_items_from_grocery_list(client):
 
 def test_plan_validates_input(client):
     recipe_id = finished_job(client, url=TIKTOK)["recipe_id"]
-    path = f"/recipes/{recipe_id}/plan"
+    path = f"/api/recipes/{recipe_id}/plan"
     assert client.post(path, json={"zip_code": "2139"}).status_code == 422
     assert client.post(path, json={"zip_code": "02139", "owned_ingredient_ids": ["nope"]}).status_code == 422
-    assert client.post("/recipes/missing/plan", json={"zip_code": "02139"}).status_code == 404
+    assert client.post("/api/recipes/missing/plan", json={"zip_code": "02139"}).status_code == 404
