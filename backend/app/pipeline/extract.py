@@ -2,7 +2,9 @@
 
 Real pipeline (docs/technical-spec.md), cheapest stage first, stopping early:
   metadata  read the caption with yt-dlp (no download) and try to structure it
-  audio     only if the caption isn't enough: download, transcribe, structure again
+  audio     always (except very long videos): download and transcribe. The transcript
+            times drive cook mode's step-by-step video clips. If the caption wasn't
+            enough, the recipe is also structured again with the transcript
   merge     write beginner steps and estimate prices/macros
 The frame stage (Claude vision on sampled frames) isn't built yet.
 
@@ -165,12 +167,20 @@ def real_extraction(
         caption_is_enough = bool(draft and draft.is_recipe and draft.complete and recipe and recipe.ingredients)
         too_long = info.duration is not None and info.duration > video.MAX_DURATION_SECONDS
         segments: list[transcribe.Segment] = []
-        if caption_is_enough or too_long:
+        if too_long:
             skip_stage(Stage.audio)
         else:
+            # Transcribe even when the caption has the whole recipe: the segment
+            # times are what let cook mode play each step's clip.
             on_stage(Stage.audio)
-            segments = _transcribe_video(info.url)
-            if segments:
+            try:
+                segments = _transcribe_video(info.url)
+            except Exception as e:
+                if not caption_is_enough:
+                    raise
+                # The recipe is already complete; only the video timing is lost.
+                log.warning("Transcription failed, continuing with the caption recipe: %s", e)
+            if segments and not caption_is_enough:
                 transcript = "\n".join(s.text for s in segments)
                 draft, recipe = structure.structure_recipe(
                     recipe_id=recipe_id,
@@ -184,8 +194,7 @@ def real_extraction(
             raise ExtractionError(NO_RECIPE)
 
         on_stage(Stage.merge)
-        # Even when the caption had the recipe, the transcript times let cook mode
-        # follow along; we only have them if we transcribed.
+        # The transcript times let cook mode follow along with the video.
         return _finish(recipe, caption=caption, segments=segments or None, video_duration=info.duration)
     except video.VideoError as e:
         raise ExtractionError(str(e)) from e
