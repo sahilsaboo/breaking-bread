@@ -3,8 +3,9 @@ import os
 from dotenv import load_dotenv
 
 # Load backend/.env (API keys, settings) before anything reads the environment.
-# Real environment variables, such as Render's, take precedence.
-load_dotenv()
+# .env wins over the shell, which may set ANTHROPIC_BASE_URL for its own use.
+# Render has no .env file, so its dashboard variables still apply there.
+load_dotenv(override=True)
 
 from fastapi import APIRouter, FastAPI, HTTPException  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
