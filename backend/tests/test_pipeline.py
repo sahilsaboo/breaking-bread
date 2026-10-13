@@ -116,20 +116,53 @@ def wait(store, job_id):
     raise AssertionError("job didn't finish")
 
 
-def test_complete_caption_skips_audio(fakes):
+def test_complete_caption_still_transcribes_for_video_timing(fakes):
     _, calls = fakes
     store = Store()
     job = wait(store, store.create_job(url=URL, text=None).job_id)
 
     assert job.status == JobStatus.done
-    assert job.stages == ["metadata", "merge"]
-    assert calls["download"] == 0
+    assert job.completed_stages == ["metadata", "audio", "merge"]
+    assert calls["download"] == 1
+    # The caption's recipe is kept; the transcript isn't used to restructure it.
+    assert len(calls["structure_prompts"]) == 1
+    assert "<transcript>" not in calls["structure_prompts"][0]
 
     extraction = store.get_extraction(job.recipe_id)
     assert [i.id for i in extraction.recipe.ingredients] == ["rice", "butter", "garlic"]
+    assert {i.source for i in extraction.recipe.ingredients} == {"caption"}
     assert extraction.recipe.servings == Servings(value=2, estimated=True)
+    # The transcript gives cook mode its video timing.
+    assert (extraction.steps[0].video_start_seconds, extraction.steps[0].video_end_seconds) == (2, 6)
+
+
+def test_complete_caption_survives_a_failed_download(fakes, monkeypatch):
+    def blocked(url, workdir):
+        raise video.VideoError("blocked")
+
+    monkeypatch.setattr(video, "download", blocked)
+    store = Store()
+    job = wait(store, store.create_job(url=URL, text=None).job_id)
+
+    assert job.status == JobStatus.done
+    extraction = store.get_extraction(job.recipe_id)
+    assert [i.id for i in extraction.recipe.ingredients] == ["rice", "butter", "garlic"]
     # No transcript, so no video timing.
     assert all(s.video_start_seconds is None for s in extraction.steps)
+
+
+def test_incomplete_caption_fails_when_download_is_blocked(fakes, monkeypatch):
+    state, _ = fakes
+    state["complete"] = False
+
+    def blocked(url, workdir):
+        raise video.VideoError("We couldn't get this video. Paste the caption or ingredient list below instead.")
+
+    monkeypatch.setattr(video, "download", blocked)
+    store = Store()
+    job = wait(store, store.create_job(url=URL, text=None).job_id)
+    assert job.status == JobStatus.failed
+    assert "Paste the caption" in job.error
 
 
 def test_incomplete_caption_transcribes_and_keeps_timing(fakes):
