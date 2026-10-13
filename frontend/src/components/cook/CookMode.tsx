@@ -7,9 +7,9 @@ import { useCallback, useEffect, useState } from "react";
 import { api, ApiError, type Ingredient, type MealPlan, type Step } from "@/lib/api";
 import { formatDuration } from "@/lib/format";
 import { ingredientIllustration, stepIllustration, tintFor } from "@/lib/illustrations";
-import type { IllustrationName } from "@/lib/illustrations.generated";
+import type { MonoIllustrationName } from "@/lib/illustrations.generated";
 
-import { Illustration } from "../Illustration";
+import { Illustration, MonoIllustration } from "../Illustration";
 import { Notice } from "../Notice";
 import { TermText } from "../results/TermText";
 import { TimerControl } from "./TimerControl";
@@ -136,10 +136,10 @@ export function CookMode({
                 type="button"
                 onClick={() => goTo(Number(order) - 1)}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold tabular-nums ${
-                  t.remaining === 0 ? "animate-pulse bg-mint-soft text-success" : "bg-apricot-soft text-warn"
+                  t.remaining === 0 ? "animate-pulse bg-mint-soft text-success" : "bg-apricot-soft text-accent-ink"
                 }`}
               >
-                <Illustration name="timer-clock" size={20} tint="bg-transparent" />
+                <MonoIllustration name="timer-clock" size={20} tint="bg-transparent" color="text-current" />
                 Step {order}: {t.remaining === 0 ? "done!" : formatDuration(t.remaining)}
               </button>
             ))}
@@ -149,7 +149,7 @@ export function CookMode({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         {/* Video: pinned to the top on phones, on the right on wide screens. */}
-        <aside className="sticky top-0 z-10 -mx-4 bg-background px-4 py-3 shadow-[0_8px_12px_-10px_rgb(35_48_66/0.25)] lg:top-6 lg:order-last lg:mx-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+        <aside className="sticky top-0 z-10 -mx-4 bg-background px-4 py-3 shadow-[0_8px_12px_-10px_rgb(20_56_31/0.25)] lg:top-6 lg:order-last lg:mx-0 lg:bg-transparent lg:p-0 lg:shadow-none">
           <VideoPanel
             sourceUrl={plan.source_url}
             start={done ? null : step.video_start_seconds}
@@ -216,10 +216,10 @@ function StepCard({
   onResetTimer: () => void;
 }) {
   return (
-    <article className="card flex motion-safe:animate-step-in flex-col gap-5 p-6">
+    <article className="card flex motion-safe:animate-step-in flex-col gap-5 border-4 border-accent p-6">
       <div className="flex items-center gap-4">
-        <Illustration name={stepIllustration(step.instruction)} size={72} tint={tintFor(index)} />
-        <span className="rounded-full bg-sorbet-soft px-3 py-1 text-sm font-bold text-sorbet-ink">
+        <MonoIllustration name={stepIllustration(step.instruction)} size={72} tint="bg-accent-soft" />
+        <span className="rounded-full bg-accent px-3 py-1 text-sm font-bold text-accent-fg">
           Step {step.order} of {total}
         </span>
       </div>
@@ -269,14 +269,14 @@ function Callout({
   className,
   children,
 }: {
-  picture: IllustrationName;
+  picture: MonoIllustrationName;
   label: string;
   className: string;
   children: React.ReactNode;
 }) {
   return (
     <div className={`flex items-start gap-3 rounded-2xl p-3 ${className}`}>
-      <Illustration name={picture} size={40} tint="bg-card" />
+      <MonoIllustration name={picture} size={40} />
       <p className="pt-1.5">
         <span className="font-bold">{label}: </span>
         {children}
@@ -288,7 +288,7 @@ function Callout({
 function FinishedCard({ onRestart, backToPlan }: { onRestart: () => void; backToPlan: string }) {
   return (
     <article className="card flex motion-safe:animate-step-in flex-col items-center gap-4 p-8 text-center">
-      <Illustration name="party-popper" size={96} tint="bg-apricot-soft" />
+      <MonoIllustration name="party-popper" size={96} tint="bg-accent-soft" />
       <h1 className="text-3xl font-extrabold tracking-tight">You cooked it!</h1>
       <p className="text-muted">Enjoy your meal. Put leftovers in the fridge within 2 hours.</p>
       <div className="flex flex-wrap justify-center gap-3">

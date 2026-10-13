@@ -51,7 +51,8 @@ When a decision is made, record it in `docs/decisions.md`.
 - Windows: the venv lives at `.venv\Scripts\` instead of `.venv/bin/` (see README "On Windows"). Always pass `encoding="utf-8"` when reading or writing text files; Windows defaults to cp1252.
 - Frontend: `cd frontend && npm install && npm run dev` (http://localhost:3000)
 - Frontend checks: `cd frontend && npm run lint && npx tsc --noEmit`
-- Illustrations: pictures come from `frontend/src/lib/illustrations.generated.ts` (Fluent Emoji flat, MIT). To add one, add its name to `frontend/scripts/gen-illustrations.mjs` and run `cd frontend && npm run gen:illustrations`.
+- Illustrations: pictures come from `frontend/src/lib/illustrations.generated.ts` (Fluent Emoji, MIT). Food uses the full-color flat style (`NAMES`, `<Illustration>`); every other icon uses the single-color high-contrast style in dark green (`MONO_NAMES`, `<MonoIllustration>`). To add one, add its name to the right list in `frontend/scripts/gen-illustrations.mjs` and run `cd frontend && npm run gen:illustrations`.
+- Colors: every color is a token in `frontend/src/app/globals.css` ("Forest" palette, decision #14). Use the tokens, not hex values, and keep every text/background pair at WCAG AA (4.5:1).
 - After changing `backend/app/models.py` or routes: `cd backend && .venv/bin/python scripts/export_openapi.py`, then `cd frontend && npm run gen:api`. Commit both `backend/openapi.json` and `frontend/src/lib/api-types.ts`.
 
 ## Current state

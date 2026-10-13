@@ -1,44 +1,48 @@
 @import "tailwindcss";
 
-/* "Sky & sorbet": a light pastel palette that's the same for everyone (no dark
-   mode). Pastel fills are too light for white text, so filled buttons use navy
-   text and links use the darker *-ink shades. Every text/background pair here
-   meets WCAG AA (4.5:1). */
+/* "Forest": a scale of greens built from the Breaking Bread logo's ink
+   (#203F27). Same for everyone (no dark mode). Filled buttons are deep forest
+   green with pale green text; every tint is a shade of green, from pale sage to
+   lime. The only non-green colors are status colors that carry meaning: amber
+   for warnings, brick for errors. The token names (sky, sorbet, apricot, mint)
+   are kept from the earlier pastel palette so components don't change; read
+   them as sage, leaf, lime, and mint. Every text/background pair here meets
+   WCAG AA (4.5:1). */
 :root {
   color-scheme: light;
 
-  --background: #f5faff;
-  --foreground: #233042;
-  --muted: #5b6b80;
+  --background: #edf3e8;
+  --foreground: #122017;
+  --muted: #45584a;
   --card: #ffffff;
-  --border: #d9e6f5;
+  --border: #bed6b8;
 
-  /* Primary: sky blue */
-  --accent: #5aa9e6;
-  --accent-hover: #4597d8;
-  --accent-fg: #14233a;
-  --accent-soft: #dceeff;
-  --accent-ink: #1b65a3;
+  /* Primary: deep forest green */
+  --accent: #14381f;
+  --accent-hover: #0b2513;
+  --accent-fg: #f0f7ec;
+  --accent-soft: #cbe4c5;
+  --accent-ink: #14381f;
 
-  /* Supporting pastels */
-  --sky-soft: #dceeff;
-  --sorbet: #ff8fab;
-  --sorbet-soft: #ffe0e8;
-  --sorbet-ink: #b8325a;
-  --apricot: #ffc971;
-  --apricot-soft: #fff0d6;
-  --mint: #7ed8b5;
-  --mint-soft: #ddf6ea;
+  /* Green scale, lightest to darkest */
+  --sorbet-soft: #e3f0de; /* leaf 50 */
+  --sky-soft: #d8ead2; /* sage 100 */
+  --apricot-soft: #d9eac6; /* lime 100 */
+  --mint-soft: #c8e2c0; /* mint 200 */
+  --apricot: #8fb55f; /* lime 400 */
+  --mint: #4e9a62; /* mint 500 */
+  --sorbet: #2a7f41; /* leaf 600: highlights, current step */
+  --sorbet-ink: #17502a; /* leaf 800 */
 
   /* Status */
-  --success: #1e7a55;
-  --success-soft: #ddf6ea;
-  --warn: #8a5a00;
-  --warn-soft: #fff0d6;
-  --danger: #b8325a;
-  --danger-soft: #ffe0e8;
-  --info: #1b65a3;
-  --info-soft: #dceeff;
+  --success: #1f6b35;
+  --success-soft: #d8ead2;
+  --warn: #7a4e00;
+  --warn-soft: #fbebc2;
+  --danger: #a1351f;
+  --danger-soft: #f7e0d8;
+  --info: #1d5a4c;
+  --info-soft: #d4ebe4;
 }
 
 @theme inline {
@@ -74,9 +78,9 @@
 
 body {
   color: var(--foreground);
-  /* Two soft color blobs behind the page for a bit of fun. */
+  /* Two soft green glows behind the page. */
   background:
-    radial-gradient(40rem 24rem at 100% -6rem, var(--sorbet-soft), transparent 70%),
+    radial-gradient(40rem 24rem at 100% -6rem, var(--mint-soft), transparent 70%),
     radial-gradient(36rem 22rem at -10% 0, var(--sky-soft), transparent 70%),
     var(--background);
   background-attachment: fixed;
@@ -93,7 +97,7 @@ body {
     @apply w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-base outline-none placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent/25;
   }
   .card {
-    @apply rounded-3xl border border-border bg-card p-5 shadow-[0_2px_12px_-4px_rgb(35_48_66/0.12)];
+    @apply rounded-3xl border border-border bg-card p-5 shadow-[0_2px_12px_-4px_rgb(20_56_31/0.16)];
   }
 }
 

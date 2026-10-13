@@ -1,8 +1,9 @@
-import type { IllustrationName } from "./illustrations.generated";
+import type { IllustrationName, MonoIllustrationName } from "./illustrations.generated";
 
 // Picks a picture for an ingredient or step by keyword. First match wins, so
 // specific words ("bell pepper", "olive oil") come before general ones.
-type Rule = [RegExp, IllustrationName];
+// Ingredients use full-color pictures; steps use single-color icons.
+type Rule<N extends string = IllustrationName> = [RegExp, N];
 
 const INGREDIENT_RULES: Rule[] = [
   [/chicken|turkey|poultry/, "poultry-leg"],
@@ -41,9 +42,9 @@ const INGREDIENT_RULES: Rule[] = [
 
 // Cooking methods come before prep words, so "add the minced garlic to the
 // skillet" shows a pan, not a knife.
-const STEP_RULES: Rule[] = [
+const STEP_RULES: Rule<MonoIllustrationName>[] = [
   [/drain|pasta water/, "droplet"],
-  [/\b(boil|boiling|pot)\b/, "pot-of-food"],
+  [/\b(boil|boiling|pot)\b/, "fondue"], // a pot over a flame; "pot-of-food" reads as a face in one color
   [/skillet|pan\b|sear|fry|saut|melt|simmer|wilt/, "shallow-pan-of-food"],
   [/oven|bake|roast|broil/, "fire"],
   [/\b(cut|chop|dice|slice|mince)/, "kitchen-knife"],
@@ -51,7 +52,7 @@ const STEP_RULES: Rule[] = [
   [/\b(serve|plate|enjoy)/, "fork-and-knife-with-plate"],
 ];
 
-function match(text: string, rules: Rule[], fallback: IllustrationName): IllustrationName {
+function match<N extends string>(text: string, rules: Rule<N>[], fallback: N): N {
   const lower = text.toLowerCase();
   return rules.find(([pattern]) => pattern.test(lower))?.[1] ?? fallback;
 }

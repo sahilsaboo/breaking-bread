@@ -2,19 +2,19 @@ import type { MealPlan } from "@/lib/api";
 import { approxMoney } from "@/lib/format";
 import { ingredientIllustration, tintFor } from "@/lib/illustrations";
 
-import { Illustration } from "../Illustration";
+import { Illustration, MonoIllustration } from "../Illustration";
 
 export function GroceryList({ plan }: { plan: MealPlan }) {
   const owned = plan.ingredients.filter((i) => i.owned);
   return (
     <section aria-labelledby="grocery-heading" className="flex flex-col gap-3">
       <h2 id="grocery-heading" className="flex items-center gap-2 text-xl font-extrabold tracking-tight">
-        <Illustration name="shopping-cart" size={36} tint="bg-sky-soft" /> Grocery list
+        <MonoIllustration name="shopping-cart" size={36} tint="bg-accent-soft" /> Grocery list
       </h2>
 
       {plan.grocery_list.length === 0 ? (
         <p className="card flex items-center gap-3 text-muted">
-          <Illustration name="sparkles" size={40} tint="bg-apricot-soft" /> You already have everything. Nice!
+          <MonoIllustration name="sparkles" size={40} tint="bg-accent-soft" /> You already have everything. Nice!
         </p>
       ) : (
         <ul className="card flex flex-col divide-y divide-border p-0">
@@ -52,7 +52,7 @@ function PriceTag({ type }: { type: "store price" | "estimate" }) {
   return (
     <span
       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-        type === "store price" ? "bg-success-soft text-success" : "bg-warn-soft text-warn"
+        type === "store price" ? "bg-success text-card" : "bg-accent-soft text-accent-ink"
       }`}
     >
       {type}

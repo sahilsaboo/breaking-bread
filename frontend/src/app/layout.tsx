@@ -26,14 +26,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${nunito.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
-        <header>
-          <div className="mx-auto flex max-w-6xl items-center px-4 py-4">
+        <header className="bg-accent shadow-[0_4px_16px_-6px_rgb(11_37_19/0.5)]">
+          <div className="mx-auto flex max-w-6xl items-center px-4 py-3">
             <Link href="/" aria-label="Breaking Bread home">
-              <Image src="/logo.png" alt="Breaking Bread" width={939} height={772} preload className="h-16 w-auto sm:h-20" />
+              <Image src="/logo-light.png" alt="Breaking Bread" width={939} height={772} preload className="h-16 w-auto sm:h-20" />
             </Link>
           </div>
         </header>
-        <main className="flex w-full flex-1 flex-col">{children}</main>
+        <main className="flex w-full flex-1 flex-col pt-6">{children}</main>
       </body>
     </html>
   );

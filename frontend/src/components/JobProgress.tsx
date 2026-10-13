@@ -5,19 +5,19 @@ import { useEffect, useState } from "react";
 
 import { api, ApiError, type Job } from "@/lib/api";
 import { STAGE_LABELS } from "@/lib/format";
-import type { IllustrationName } from "@/lib/illustrations.generated";
+import type { MonoIllustrationName } from "@/lib/illustrations.generated";
 
-import { Illustration } from "./Illustration";
+import { MonoIllustration } from "./Illustration";
 
 import { Notice } from "./Notice";
 import { PasteTextForm } from "./PasteTextForm";
 
 const POLL_MS = 1500;
 
-const STAGE_PICTURES: Record<Job["stages"][number], IllustrationName> = {
-  metadata: "magnifying-glass-tilted-left",
-  audio: "clapper-board",
-  frames: "sparkles",
+const STAGE_PICTURES: Record<Job["stages"][number], MonoIllustrationName> = {
+  metadata: "page-facing-up",
+  audio: "speaker-high-volume",
+  frames: "eyes",
   merge: "cooking",
 };
 
@@ -73,11 +73,12 @@ export function JobProgress({ jobId }: { jobId: string }) {
             const stageFailed = active && job.status === "failed";
             return (
               <li key={stage} className="flex items-center gap-3">
-                <Illustration
+                <MonoIllustration
                   name={STAGE_PICTURES[stage]}
                   size={40}
-                  tint={done ? "bg-mint-soft" : active ? "bg-sky-soft" : "bg-background"}
-                  className={done || active ? "" : "opacity-50 grayscale"}
+                  tint={done ? "bg-mint-soft" : active ? "bg-accent-soft" : "bg-background"}
+                  color={done || active ? "text-accent" : "text-muted"}
+                  className={done || active ? "" : "opacity-60"}
                 />
                 <span className={`flex-1 ${done || active ? "font-semibold text-foreground" : "text-muted"}`}>
                   {STAGE_LABELS[stage]}
