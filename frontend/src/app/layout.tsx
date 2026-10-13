@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Nunito } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
-
-import { Illustration } from "@/components/Illustration";
 
 import "./globals.css";
 
@@ -29,8 +28,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans">
         <header>
           <div className="mx-auto flex max-w-6xl items-center px-4 py-4">
-            <Link href="/" className="flex items-center gap-2 text-xl font-extrabold tracking-tight">
-              <Illustration name="bread" size={36} tint="bg-apricot-soft" /> Breaking Bread
+            <Link href="/" aria-label="Breaking Bread home">
+              <Image src="/logo.png" alt="Breaking Bread" width={939} height={772} preload className="h-16 w-auto sm:h-20" />
             </Link>
           </div>
         </header>
