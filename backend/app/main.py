@@ -1,12 +1,18 @@
 import os
 
-from fastapi import APIRouter, FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
-from app.jobs import store
-from app.models import CreateRecipeRequest, Job, MealPlan, PlanRequest, Recipe
-from app.pipeline.extract import InvalidLinkError, validate_link
-from app.pipeline.plan import UnknownIngredientError, build_plan
+# Load backend/.env (API keys, settings) before anything reads the environment.
+# Real environment variables, such as Render's, take precedence.
+load_dotenv()
+
+from fastapi import APIRouter, FastAPI, HTTPException  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+
+from app.jobs import store  # noqa: E402
+from app.models import CreateRecipeRequest, Job, MealPlan, PlanRequest, Recipe  # noqa: E402
+from app.pipeline.extract import InvalidLinkError, validate_link  # noqa: E402
+from app.pipeline.plan import UnknownIngredientError, build_plan  # noqa: E402
 
 app = FastAPI(
     title="Breaking Bread API",
@@ -63,11 +69,11 @@ def get_recipe(recipe_id: str) -> Recipe:
 
 @router.post("/recipes/{recipe_id}/plan")
 def plan_recipe(recipe_id: str, body: PlanRequest) -> MealPlan:
-    recipe = store.get_recipe(recipe_id)
-    if recipe is None:
+    extraction = store.get_extraction(recipe_id)
+    if extraction is None:
         raise HTTPException(status_code=404, detail="Recipe not found.")
     try:
-        return build_plan(recipe, body.zip_code, body.owned_ingredient_ids)
+        return build_plan(extraction, body.zip_code, body.owned_ingredient_ids)
     except UnknownIngredientError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
 

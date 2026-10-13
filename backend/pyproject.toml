@@ -7,6 +7,8 @@ dependencies = [
     "fastapi>=0.142",
     "uvicorn[standard]>=0.54",
     "pydantic>=2.13",
+    "anthropic>=1.13,<2",
+    "python-dotenv>=1.0",
     # TikTok extraction needs browser impersonation (curl_cffi)
     "yt-dlp[default,curl-cffi]>=2026.8.19",
     "faster-whisper>=1.2.1",

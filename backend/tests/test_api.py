@@ -46,7 +46,7 @@ def test_requires_exactly_one_input(client):
 def test_link_job_runs_all_stages_and_returns_recipe(client):
     job = finished_job(client, url=TIKTOK)
     assert job["status"] == "done"
-    assert job["completed_stages"] == ["metadata", "audio", "frames", "merge"]
+    assert job["completed_stages"] == ["metadata", "audio", "merge"]
     assert job["stages"] == job["completed_stages"]
 
     recipe = client.get(f"/api/recipes/{job['recipe_id']}").json()
