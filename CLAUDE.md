@@ -54,9 +54,10 @@ When a decision is made, record it in `docs/decisions.md`.
 - Illustrations: pictures come from `frontend/src/lib/illustrations.generated.ts` (Fluent Emoji flat, MIT). To add one, add its name to `frontend/scripts/gen-illustrations.mjs` and run `cd frontend && npm run gen:illustrations`.
 - After changing `backend/app/models.py` or routes: `cd backend && .venv/bin/python scripts/export_openapi.py`, then `cd frontend && npm run gen:api`. Commit both `backend/openapi.json` and `frontend/src/lib/api-types.ts`.
 
-## Current state (walking skeleton)
-- Every pipeline stage is a stub backed by `backend/app/fixtures/sample_recipe.json`. Stub code is marked `STUB:`.
-- Extraction progress is simulated (one stage every `STUB_STAGE_SECONDS`). A link containing `stub-fail` fails on purpose, to exercise the error and paste-text fallback.
+## Current state
+- With `ANTHROPIC_API_KEY` set (in `backend/.env` locally), links run the real pipeline in `backend/app/pipeline/extract.py`: caption via yt-dlp → audio download + faster-whisper only if the caption lacks the recipe → Claude structures the recipe, writes the steps, and estimates prices and macros. The frame stage isn't built yet.
+- Prices and macros are Claude estimates (`backend/app/pipeline/estimates.py`), always tagged `estimate` / approximate, until the price source (#1) and USDA adapter land.
+- Without a key, or with `PIPELINE_MODE=stub`, every link returns the sample recipe in `backend/app/fixtures/sample_recipe.json` with simulated progress (one stage every `STUB_STAGE_SECONDS`). A link containing `stub-fail` fails on purpose. Stub code is marked `STUB:`. Tests always run in stub mode (`backend/tests/conftest.py`) and fake external services.
 - Jobs and recipes live in memory and disappear on restart, until the SQLite cache lands.
 - Cost math in `backend/app/costs.py` is real and tested. Prices themselves are stub estimates.
 - Keep the repo outside iCloud-synced folders such as `~/Documents`: syncing `.venv` and `node_modules` makes imports and tests hang.

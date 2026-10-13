@@ -22,6 +22,13 @@ services:
         value: 3.12.15
       - key: STUB_STAGE_SECONDS
         value: "1.5"
+      # Turns on the real pipeline. Render prompts for the value; leave it
+      # empty to keep serving the sample recipe.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Smallest model while decision #13 (what fits in 512 MB) is open.
+      - key: WHISPER_MODEL
+        value: tiny
       # Temporary: enables /api/spike (decision #13). Render prompts for the
       # value; leave it empty to keep the spike routes switched off.
       - key: SPIKE_TOKEN
