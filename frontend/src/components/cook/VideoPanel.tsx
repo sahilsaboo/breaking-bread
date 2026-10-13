@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { formatDuration } from "@/lib/format";
 import { tiktokPlayerUrl, tiktokVideoId } from "@/lib/tiktok";
 
-import { Illustration } from "../Illustration";
+import { MonoIllustration } from "../Illustration";
 
 type PlayerMessage = { "x-tiktok-player"?: boolean; type?: string; value?: unknown };
 
@@ -74,7 +74,7 @@ export function VideoPanel({
   if (!id) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-3xl bg-sky-soft p-6 text-center">
-        <Illustration name="clapper-board" size={64} tint="bg-card" />
+        <MonoIllustration name="clapper-board" size={64} />
         <p className="text-sm text-muted">
           We can follow along in the video for TikTok links.
           {sourceUrl && (

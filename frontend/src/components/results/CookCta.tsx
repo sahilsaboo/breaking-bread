@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import type { Step } from "@/lib/api";
-import { stepIllustration, tintFor } from "@/lib/illustrations";
+import { stepIllustration } from "@/lib/illustrations";
 
-import { Illustration } from "../Illustration";
+import { MonoIllustration } from "../Illustration";
 
 /** Invites the user into cook mode, with a peek at what the steps involve. */
 export function CookCta({ steps, href }: { steps: Step[]; href: string }) {
@@ -23,8 +23,8 @@ export function CookCta({ steps, href }: { steps: Step[]; href: string }) {
       <ol className="flex flex-wrap gap-2.5 pt-1" aria-hidden>
         {steps.map((s, i) => (
           <li key={s.order} className="relative">
-            <Illustration name={stepIllustration(s.instruction)} size={52} tint="bg-card" />
-            <span className={`absolute -top-1 -right-1 grid size-5 place-items-center rounded-full text-[0.65rem] font-bold ${tintFor(i)}`}>
+            <MonoIllustration name={stepIllustration(s.instruction)} size={52} className="border-2 border-accent-soft" />
+            <span className={`absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-accent text-[0.65rem] font-bold text-accent-fg`}>
               {s.order}
             </span>
           </li>

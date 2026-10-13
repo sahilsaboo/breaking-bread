@@ -1,6 +1,6 @@
 import { formatDuration } from "@/lib/format";
 
-import { Illustration } from "../Illustration";
+import { MonoIllustration } from "../Illustration";
 import type { StepTimer } from "./useStepTimers";
 
 /** The big timer built into a step card. */
@@ -32,7 +32,7 @@ export function TimerControl({
         style={{ width: `${finished ? 0 : progress * 100}%` }}
         aria-hidden
       />
-      <Illustration name={finished ? "check-mark-button" : "timer-clock"} size={52} tint="bg-card" className="relative" />
+      <MonoIllustration name={finished ? "check-mark-button" : "timer-clock"} size={52} className="relative" />
       <div className="relative flex flex-col">
         <span className="text-xs font-bold tracking-wide text-muted uppercase">Timer</span>
         <span className="font-mono text-3xl font-bold tabular-nums" aria-live="polite">

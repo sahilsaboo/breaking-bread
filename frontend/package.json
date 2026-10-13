@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@iconify-json/fluent-emoji-flat": "^1.2.6",
+    "@iconify-json/fluent-emoji-high-contrast": "^1.2.6",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
