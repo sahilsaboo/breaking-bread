@@ -1,9 +1,8 @@
 """TikTok / Instagram access through yt-dlp.
 
 Two calls, cheapest first: `fetch_metadata` reads the caption without
-downloading anything; `download` fetches the video only when the caption
-doesn't have the recipe. Download options come from scripts/spike.py, which
-confirmed they work for TikTok.
+downloading anything; `download` fetches just enough of the video to
+transcribe it.
 """
 
 from dataclasses import dataclass
@@ -55,13 +54,20 @@ def fetch_metadata(url: str) -> VideoInfo:
     )
 
 
+# Only the sound is transcribed, so take the smallest file that has it: an
+# audio-only stream if the platform offers one, else the lowest-quality video
+# that has sound (TikTok usually serves only combined mp4s). Smaller files keep
+# the 512 MB free host further from its limit. No ffmpeg step is needed:
+# faster-whisper reads the audio track straight out of either file.
+AUDIO_FORMAT = "bestaudio/worst[acodec!=none][ext=mp4]/worst[acodec!=none]"
+
+
 def download(url: str, workdir: Path) -> Path:
-    """Download the video into `workdir` and return its path. Caller deletes it."""
+    """Download the audio (or smallest video with sound) into `workdir` and return its path. Caller deletes it."""
     opts = {
         **_BASE_OPTS,
-        # TikTok serves a single mp4 with audio, so no ffmpeg merge is needed.
-        "format": "best[ext=mp4]/best",
-        "outtmpl": str(workdir / "video.%(ext)s"),
+        "format": AUDIO_FORMAT,
+        "outtmpl": str(workdir / "media.%(ext)s"),
     }
     try:
         with yt_dlp.YoutubeDL(opts) as ydl:
