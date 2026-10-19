@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from app.adapters import claude
 from app.models import Ingredient, Recipe, Servings
 
-# Assumed when the source doesn't say (docs/technical-spec.md, Nutrition).
+# Last-resort fallback if Claude returns no usable serving count.
 DEFAULT_SERVINGS = 2
 
 
@@ -25,7 +25,12 @@ class DraftIngredient(BaseModel):
 class DraftRecipe(BaseModel):
     is_recipe: bool = Field(description="False if the sources don't describe a dish to cook")
     title: str = Field(description="Short dish name, e.g. 'Creamy Garlic Chicken Pasta'")
-    servings: int | None = Field(description="Servings if the source states it, else null")
+    servings: int = Field(
+        description="How many servings the recipe makes: the stated count, else your best estimate from the amounts"
+    )
+    servings_stated: bool = Field(
+        description="True if the sources say how many it serves or makes; false if you estimated it"
+    )
     ingredients: list[DraftIngredient]
     complete: bool = Field(
         description="True if the sources name every ingredient the dish needs, with amounts for most of them"
@@ -46,6 +51,10 @@ Rules:
 - Always estimate grams for the amount used. If the amount isn't stated, estimate a typical
   amount for this recipe and set amount_estimated to true.
 - Lower the confidence when the transcript is unclear or the amount is a guess.
+- Servings: if the sources say how many it serves or makes ("serves 4", "makes 6 tacos",
+  "dinner for two", "4 meal-prep containers"), use that and set servings_stated to true.
+  Otherwise estimate how many normal adult portions the ingredient amounts make (for example
+  1 lb pasta with sauce is about 4) and set servings_stated to false.
 - Set complete to false when the sources seem to leave ingredients out (for example a caption
   that only says "recipe below" or names the dish without a list).
 - If the sources don't describe a dish (no ingredients at all), set is_recipe to false
@@ -114,8 +123,8 @@ def to_recipe(draft: DraftRecipe, *, recipe_id: str, source_url: str | None, cre
         for ingredient_id, i in zip(ids, draft.ingredients)
     ]
     servings = (
-        Servings(value=draft.servings, estimated=False)
-        if draft.servings and draft.servings > 0
+        Servings(value=draft.servings, estimated=not draft.servings_stated)
+        if draft.servings > 0
         else Servings(value=DEFAULT_SERVINGS, estimated=True)
     )
     return Recipe(

@@ -29,11 +29,7 @@ export function MacrosPanel({ plan }: { plan: MealPlan }) {
           </div>
         ))}
       </dl>
-      <p className="text-xs text-muted">
-        {plan.servings.estimated
-          ? `The video didn't say how many people it serves, so we assumed ${plan.servings.value}.`
-          : `Makes ${plan.servings.value} servings.`}
-      </p>
+      <p className="text-xs text-muted">1 of {plan.servings.value} servings, same as the cost per serving.</p>
     </section>
   );
 }

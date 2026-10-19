@@ -79,7 +79,7 @@ Requirements for whatever source is chosen:
 - Use USDA FoodData Central. Prefer the Foundation and SR Legacy data types for generic ingredients. Use Branded data only when the recipe names a specific product.
 - Map each ingredient to an `fdcId` and cache the mapping.
 - Convert every quantity to grams before calculating. Vague amounts ("a splash," "some garlic") get an LLM-estimated gram value with `estimated: true`.
-- Report calories, protein, carbohydrates, and fat **per serving**. Use the reel's serving count if one is stated. Otherwise default to 2 and show that assumption in the UI.
+- Report calories, protein, carbohydrates, and fat **per serving**. Use the reel's serving count if one is stated. Otherwise have Claude estimate it from the ingredient amounts, mark it `estimated: true`, and show that assumption in the UI (2 is only a last-resort fallback). Per-meal cost and per-serving macros always divide by this same serving count.
 - Mark macros as approximate whenever any input quantity is estimated.
 
 ## Beginner-friendly guidance
