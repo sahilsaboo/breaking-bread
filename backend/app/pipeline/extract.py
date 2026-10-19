@@ -1,18 +1,20 @@
 """Link validation and recipe extraction.
 
-Real pipeline (docs/technical-spec.md), cheapest stage first, stopping early:
-  metadata  read the caption with yt-dlp (no download) and try to structure it
+Real pipeline (docs/technical-spec.md), three Claude calls per new video:
+  cache     a link or text someone already processed returns the stored result (no cost)
+  metadata  read the caption with yt-dlp (no download)
   audio     always (except very long videos): download and transcribe. The transcript
-            times drive cook mode's step-by-step video clips. If the caption wasn't
-            enough, the recipe is also structured again with the transcript; if it was,
-            a cheap call checks the transcript for a serving count said out loud
-  merge     write beginner steps and estimate prices/macros
+            times drive cook mode's step-by-step video clips
+  merge     one call structures the recipe from caption + transcript together
+            (ingredients, amounts, servings said out loud); then, in parallel, one
+            call writes beginner steps and one estimates prices/macros
 The frame stage (Claude vision on sampled frames) isn't built yet.
 
 Without an Anthropic API key, or with PIPELINE_MODE=stub, every link returns
 the sample fixture instead (STUB), so the app and tests run without network.
 """
 
+import contextvars
 import logging
 import os
 import tempfile
@@ -22,6 +24,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urlparse
 
+from app import cache
 from app.adapters import claude, transcribe, video
 from app.models import Macros, Product, Recipe, Stage, Step
 from app.pipeline import estimates, guidance, structure
@@ -125,10 +128,17 @@ def _finish(
 ) -> Extraction:
     """Merge stage: steps and estimates don't depend on each other, so run them together."""
     with ThreadPoolExecutor(max_workers=2) as pool:
+        # Run each call in a copy of this context so its token usage is counted for this job.
         steps_future = pool.submit(
-            guidance.write_steps, recipe, caption=caption, segments=segments, pasted=pasted, video_duration=video_duration
+            contextvars.copy_context().run,
+            guidance.write_steps,
+            recipe,
+            caption=caption,
+            segments=segments,
+            pasted=pasted,
+            video_duration=video_duration,
         )
-        estimates_future = pool.submit(estimates.estimate, recipe)
+        estimates_future = pool.submit(contextvars.copy_context().run, estimates.estimate, recipe)
         steps = steps_future.result()
         products, macros = estimates_future.result()
     return Extraction(recipe=recipe, steps=steps, products=products, macros_total=macros)
@@ -148,66 +158,80 @@ def real_extraction(
     text: str | None,
     on_stage: Callable[[Stage], None],
     skip_stage: Callable[[Stage], None],
+    on_cache_hit: Callable[[], None] | None = None,
 ) -> Extraction:
+    def cached(key: str) -> Extraction | None:
+        hit = cache.get(key, recipe_id=recipe_id)
+        if hit is not None:
+            log.info("Cache hit for %s", key)
+            if on_cache_hit:
+                on_cache_hit()
+            on_stage(Stage.merge)
+        return hit
+
     try:
         if text is not None:
+            text_key = cache.key_for_text(text)
+            if hit := cached(text_key):
+                return hit
             on_stage(Stage.merge)
             draft, recipe = structure.structure_recipe(recipe_id=recipe_id, source_url=None, pasted=text)
             if not draft.is_recipe or not recipe.ingredients:
                 raise ExtractionError("We couldn't find ingredients in that text. Paste the ingredient list with amounts.")
-            return _finish(recipe, pasted=text)
+            result = _finish(recipe, pasted=text)
+            cache.put([text_key], result)
+            return result
 
         assert url is not None
+        link_key = cache.key_for_url(url)
+        if hit := cached(link_key):
+            return hit
         on_stage(Stage.metadata)
         info = video.fetch_metadata(url)
+        # Short links (vm.tiktok.com/...) only reveal the video id after fetching.
+        video_key = cache.key_for_url(info.url)
+        if video_key != link_key and (hit := cached(video_key)):
+            cache.put([link_key], hit)
+            return hit
         caption = "\n".join(p for p in (info.title, info.description) if p).strip() or None
-        draft, recipe = None, None
-        if caption:
-            draft, recipe = structure.structure_recipe(
-                recipe_id=recipe_id, source_url=info.url, creator=info.uploader, caption=caption
-            )
 
-        caption_is_enough = bool(draft and draft.is_recipe and draft.complete and recipe and recipe.ingredients)
+        # Transcribe even when the caption has the whole recipe: the segment times
+        # are what let cook mode play each step's clip. Doing it before structuring
+        # means one Claude call reads caption and transcript together (ingredients,
+        # amounts, and a serving count said out loud) instead of one per source.
         too_long = info.duration is not None and info.duration > video.MAX_DURATION_SECONDS
         segments: list[transcribe.Segment] = []
+        transcription_error: Exception | None = None
         if too_long:
             skip_stage(Stage.audio)
         else:
-            # Transcribe even when the caption has the whole recipe: the segment
-            # times are what let cook mode play each step's clip.
             on_stage(Stage.audio)
             try:
                 segments = _transcribe_video(info.url)
             except Exception as e:
-                if not caption_is_enough:
+                if not caption:
                     raise
-                # The recipe is already complete; only the video timing is lost.
-                log.warning("Transcription failed, continuing with the caption recipe: %s", e)
-            if segments and caption_is_enough and recipe is not None and recipe.servings.estimated:
-                # The caption recipe stays; only check for a serving count said out loud.
-                try:
-                    spoken = structure.servings_from_transcript("\n".join(s.text for s in segments))
-                except claude.ClaudeError as e:
-                    log.warning("Servings check failed, keeping the estimate: %s", e)
-                    spoken = None
-                if spoken is not None:
-                    recipe.servings = spoken
-            if segments and not caption_is_enough:
-                transcript = "\n".join(s.text for s in segments)
-                draft, recipe = structure.structure_recipe(
-                    recipe_id=recipe_id,
-                    source_url=info.url,
-                    creator=info.uploader,
-                    caption=caption,
-                    transcript=transcript,
-                )
+                # A complete caption can still carry the recipe; only video timing is lost.
+                log.warning("Transcription failed, trying the caption alone: %s", e)
+                transcription_error = e
 
-        if draft is None or recipe is None or not draft.is_recipe or not recipe.ingredients:
+        transcript = "\n".join(s.text for s in segments) or None
+        if not caption and not transcript:
+            raise ExtractionError(NO_RECIPE)
+        draft, recipe = structure.structure_recipe(
+            recipe_id=recipe_id, source_url=info.url, creator=info.uploader, caption=caption, transcript=transcript
+        )
+        if transcription_error is not None and not draft.complete:
+            # Without the audio, a partial caption would mean a recipe with missing ingredients.
+            raise transcription_error
+        if not draft.is_recipe or not recipe.ingredients:
             raise ExtractionError(NO_RECIPE)
 
         on_stage(Stage.merge)
         # The transcript times let cook mode follow along with the video.
-        return _finish(recipe, caption=caption, segments=segments or None, video_duration=info.duration)
+        result = _finish(recipe, caption=caption, segments=segments or None, video_duration=info.duration)
+        cache.put([link_key, video_key], result)
+        return result
     except video.VideoError as e:
         raise ExtractionError(str(e)) from e
     except claude.ClaudeError as e:

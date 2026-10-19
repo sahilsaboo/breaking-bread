@@ -42,6 +42,11 @@ SYSTEM = """You turn cooking videos into recipes for college students who are ne
 You get the video's caption and/or a transcript of what the cook says, or text the user pasted.
 Return the dish and its ingredient list.
 
+When you get both a caption and a transcript, read them together: a caption that lists
+ingredients with amounts is the main source; the transcript fills in what the caption leaves
+out (missing ingredients, amounts, a serving count said out loud). Ignore products the cook
+only advertises or mentions in passing without using them in the dish.
+
 Rules:
 - Only include ingredients that the sources actually mention. Never add ingredients that
   "usually" go in the dish. If the cook says "season it" without naming seasonings, don't
@@ -55,39 +60,10 @@ Rules:
   "dinner for two", "4 meal-prep containers"), use that and set servings_stated to true.
   Otherwise estimate how many normal adult portions the ingredient amounts make (for example
   1 lb pasta with sauce is about 4) and set servings_stated to false.
-- Set complete to false when the sources seem to leave ingredients out (for example a caption
-  that only says "recipe below" or names the dish without a list).
+- Set complete to false when the sources together seem to leave ingredients out (for example
+  a caption that only says "recipe below" and no transcript that fills the gap).
 - If the sources don't describe a dish (no ingredients at all), set is_recipe to false
   and return an empty ingredient list."""
-
-
-class DraftServings(BaseModel):
-    servings: int | None = Field(description="The serving count the cook states, else null")
-    stated: bool = Field(description="True only if the transcript says how many it serves or makes")
-
-
-SERVINGS_SYSTEM = """You read a transcript of a cooking video and report how many servings the cook says
-the recipe makes ("this feeds four", "makes 6 tacos", "dinner for two", "4 meal-prep containers").
-Only report a count the cook actually says. If they don't say one, return servings null and
-stated false. Never estimate from the ingredient amounts."""
-
-
-def servings_from_transcript(transcript: str) -> Servings | None:
-    """A cheap check for a serving count that is only said out loud.
-
-    Used when the caption already gave a complete recipe, so the ingredients
-    stay as they are and only the servings can change.
-    """
-    draft = claude.ask(
-        system=SERVINGS_SYSTEM,
-        prompt=f"<transcript>\n{transcript}\n</transcript>",
-        output=DraftServings,
-        effort="low",
-        max_tokens=1000,
-    )
-    if draft.stated and draft.servings and draft.servings > 0:
-        return Servings(value=draft.servings, estimated=False)
-    return None
 
 
 def _slug(name: str) -> str:

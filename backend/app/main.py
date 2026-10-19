@@ -6,6 +6,11 @@ from dotenv import load_dotenv
 # Real environment variables, such as Render's, take precedence.
 load_dotenv()
 
+import logging  # noqa: E402
+
+# Show the app's own INFO lines (per-call token usage, cache hits) next to uvicorn's.
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(levelname)s:     %(name)s: %(message)s")
+
 from fastapi import APIRouter, FastAPI, HTTPException  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 

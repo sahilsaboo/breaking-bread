@@ -11,6 +11,8 @@ from typing import TypeVar
 import anthropic
 from pydantic import BaseModel, ValidationError
 
+from app import usage
+
 log = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
@@ -70,6 +72,9 @@ def ask(*, system: str, prompt: str, output: type[T], effort: str = "medium", ma
             raise ClaudeError("Our recipe helper isn't responding right now. Try again soon.") from e
         except anthropic.APIConnectionError as e:
             raise ClaudeError("We couldn't reach our recipe helper. Check your connection and try again.") from e
+
+        # Every attempt is billed, including ones we retry, so record them all.
+        usage.record(output.__name__, response.model, response.usage)
 
         if response.stop_reason == "refusal":
             log.warning("Claude declined (request %s): %s", response._request_id, response.stop_details)
