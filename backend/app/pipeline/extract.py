@@ -101,11 +101,13 @@ def stub_extraction(*, recipe_id: str, url: str | None, text: str | None) -> Ext
         if i.id in data["products"]
     }
     approximate = recipe.servings.estimated or any(i.estimated for i in recipe.ingredients)
+    # The fixture states macros per serving; the pipeline carries whole-recipe totals.
+    total = {k: v * recipe.servings.value for k, v in data["macros_per_serving"].items()}
     return Extraction(
         recipe=recipe,
         steps=[Step.model_validate(s) for s in data["steps"]],
         products=products,
-        macros_per_serving=Macros(**data["macros_per_serving"], approximate=approximate),
+        macros_total=Macros(**total, approximate=approximate),
     )
 
 
@@ -128,7 +130,7 @@ def _finish(
         estimates_future = pool.submit(estimates.estimate, recipe)
         steps = steps_future.result()
         products, macros = estimates_future.result()
-    return Extraction(recipe=recipe, steps=steps, products=products, macros_per_serving=macros)
+    return Extraction(recipe=recipe, steps=steps, products=products, macros_total=macros)
 
 
 def _transcribe_video(url: str) -> list[transcribe.Segment]:

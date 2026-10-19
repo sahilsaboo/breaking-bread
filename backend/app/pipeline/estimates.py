@@ -84,6 +84,5 @@ def to_products_and_macros(draft: DraftEstimates, recipe: Recipe) -> tuple[dict[
     if missing:
         log.warning("No price estimate for %s", sorted(missing))
 
-    servings = recipe.servings.value
-    macros = Macros(**{k: round(v / servings, 1) for k, v in totals.items()}, approximate=True)
-    return products, macros
+    # Whole-recipe totals; planning divides them by servings alongside the cost.
+    return products, Macros(**totals, approximate=True)

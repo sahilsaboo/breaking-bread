@@ -50,6 +50,11 @@ export function Results({ recipeId, zip, owned }: { recipeId: string; zip: strin
             </>
           )}
         </p>
+        <p className="mt-1 text-sm font-bold">
+          {plan.servings.estimated
+            ? `Makes about ${plan.servings.value} servings (our guess, the video didn't say)`
+            : `Makes ${plan.servings.value} servings`}
+        </p>
       </header>
 
       <CostSummary plan={plan} />

@@ -21,7 +21,8 @@ def draft_recipe(*, complete=True, source="caption"):
     return DraftRecipe(
         is_recipe=True,
         title="Garlic Butter Rice",
-        servings=None,
+        servings=4,
+        servings_stated=False,
         complete=complete,
         ingredients=[
             DraftIngredient(name="rice", quantity=1, unit="cup", grams=185, amount_estimated=False, source=source, confidence=0.9),
@@ -131,7 +132,7 @@ def test_complete_caption_still_transcribes_for_video_timing(fakes):
     extraction = store.get_extraction(job.recipe_id)
     assert [i.id for i in extraction.recipe.ingredients] == ["rice", "butter", "garlic"]
     assert {i.source for i in extraction.recipe.ingredients} == {"caption"}
-    assert extraction.recipe.servings == Servings(value=2, estimated=True)
+    assert extraction.recipe.servings == Servings(value=4, estimated=True)
     # The transcript gives cook mode its video timing.
     assert (extraction.steps[0].video_start_seconds, extraction.steps[0].video_end_seconds) == (2, 6)
 
@@ -225,6 +226,28 @@ def test_plan_uses_extracted_products_and_steps(fakes):
     assert plan.macros_per_serving.approximate is True
 
 
+def test_cost_and_macros_divide_by_the_same_servings(fakes):
+    store = Store()
+    job = wait(store, store.create_job(url=URL, text=None).job_id)
+    extraction = store.get_extraction(job.recipe_id)
+
+    plan = build_plan(extraction, "02139", [])
+    assert plan.servings.value == 4
+    assert plan.macros_per_serving.calories == pytest.approx((240 + 200 + 13) / 4, abs=0.1)
+    used = 185 / 907 * 2.49 + 28 / 454 * 4.99 + 9 / 50 * 0.79
+    assert plan.costs.per_meal == pytest.approx(used / 4, abs=0.01)
+
+
+def test_stated_servings_are_not_marked_estimated():
+    draft = draft_recipe().model_copy(update={"servings": 6, "servings_stated": True})
+    assert to_recipe(draft, recipe_id="r", source_url=None, creator=None).servings == Servings(value=6, estimated=False)
+
+
+def test_unusable_servings_fall_back_to_estimated_default():
+    draft = draft_recipe().model_copy(update={"servings": 0, "servings_stated": True})
+    assert to_recipe(draft, recipe_id="r", source_url=None, creator=None).servings == Servings(value=2, estimated=True)
+
+
 def test_to_steps_cleans_terms_and_bad_timestamps():
     guidance = draft_guidance()
     guidance.steps[1].video_start_seconds = 50  # past the end of a 45s video
@@ -237,12 +260,12 @@ def test_to_steps_cleans_terms_and_bad_timestamps():
     assert all(s.video_start_seconds is None for s in to_steps(guidance, has_timing=False, video_duration=45))
 
 
-def test_estimates_ignore_unknown_ids_and_divide_by_servings():
+def test_estimates_ignore_unknown_ids_and_total_the_recipe():
     recipe = to_recipe(draft_recipe(), recipe_id="r", source_url=None, creator=None)
     products, macros = to_products_and_macros(draft_estimates(), recipe)
 
     assert set(products) == {"rice", "butter", "garlic"}
-    assert macros.calories == pytest.approx((240 + 200 + 13) / 2)
+    assert macros.calories == pytest.approx(240 + 200 + 13)
     assert macros.approximate is True
 
 

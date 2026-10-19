@@ -16,10 +16,10 @@ export function CostSummary({ plan }: { plan: MealPlan }) {
         </div>
         <div className="card flex flex-col gap-1 border-accent bg-accent text-accent-fg">
           <MonoIllustration name="fork-and-knife-with-plate" size={44} className="mb-1" />
-          <span className="text-sm font-bold text-accent-fg/85">Per meal</span>
+          <span className="text-sm font-bold text-accent-fg/85">Per serving</span>
           <span className="text-3xl font-bold tracking-tight">{approxMoney(plan.costs.per_meal)}</span>
           <span className="text-xs text-accent-fg/85">
-            What one serving really costs, counting what you have
+            1 of {plan.servings.value} servings, counting what you have
           </span>
         </div>
       </div>
