@@ -29,6 +29,10 @@ services:
       # Smallest model while decision #13 (what fits in 512 MB) is open.
       - key: WHISPER_MODEL
         value: tiny
+      # One transcription thread: the free host has a fraction of a CPU, and
+      # each extra thread costs memory.
+      - key: WHISPER_THREADS
+        value: "1"
       # Temporary: enables /api/spike (decision #13). Render prompts for the
       # value; leave it empty to keep the spike routes switched off.
       - key: SPIKE_TOKEN
