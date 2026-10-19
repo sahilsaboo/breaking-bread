@@ -61,6 +61,35 @@ Rules:
   and return an empty ingredient list."""
 
 
+class DraftServings(BaseModel):
+    servings: int | None = Field(description="The serving count the cook states, else null")
+    stated: bool = Field(description="True only if the transcript says how many it serves or makes")
+
+
+SERVINGS_SYSTEM = """You read a transcript of a cooking video and report how many servings the cook says
+the recipe makes ("this feeds four", "makes 6 tacos", "dinner for two", "4 meal-prep containers").
+Only report a count the cook actually says. If they don't say one, return servings null and
+stated false. Never estimate from the ingredient amounts."""
+
+
+def servings_from_transcript(transcript: str) -> Servings | None:
+    """A cheap check for a serving count that is only said out loud.
+
+    Used when the caption already gave a complete recipe, so the ingredients
+    stay as they are and only the servings can change.
+    """
+    draft = claude.ask(
+        system=SERVINGS_SYSTEM,
+        prompt=f"<transcript>\n{transcript}\n</transcript>",
+        output=DraftServings,
+        effort="low",
+        max_tokens=1000,
+    )
+    if draft.stated and draft.servings and draft.servings > 0:
+        return Servings(value=draft.servings, estimated=False)
+    return None
+
+
 def _slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "ingredient"
 

@@ -4,7 +4,8 @@ Real pipeline (docs/technical-spec.md), cheapest stage first, stopping early:
   metadata  read the caption with yt-dlp (no download) and try to structure it
   audio     always (except very long videos): download and transcribe. The transcript
             times drive cook mode's step-by-step video clips. If the caption wasn't
-            enough, the recipe is also structured again with the transcript
+            enough, the recipe is also structured again with the transcript; if it was,
+            a cheap call checks the transcript for a serving count said out loud
   merge     write beginner steps and estimate prices/macros
 The frame stage (Claude vision on sampled frames) isn't built yet.
 
@@ -182,6 +183,15 @@ def real_extraction(
                     raise
                 # The recipe is already complete; only the video timing is lost.
                 log.warning("Transcription failed, continuing with the caption recipe: %s", e)
+            if segments and caption_is_enough and recipe is not None and recipe.servings.estimated:
+                # The caption recipe stays; only check for a serving count said out loud.
+                try:
+                    spoken = structure.servings_from_transcript("\n".join(s.text for s in segments))
+                except claude.ClaudeError as e:
+                    log.warning("Servings check failed, keeping the estimate: %s", e)
+                    spoken = None
+                if spoken is not None:
+                    recipe.servings = spoken
             if segments and not caption_is_enough:
                 transcript = "\n".join(s.text for s in segments)
                 draft, recipe = structure.structure_recipe(
