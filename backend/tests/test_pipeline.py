@@ -12,7 +12,7 @@ from app.pipeline import extract
 from app.pipeline.estimates import DraftEstimate, DraftEstimates, to_products_and_macros
 from app.pipeline.guidance import DraftGuidance, DraftStep, DraftTerm, to_steps
 from app.pipeline.plan import build_plan
-from app.pipeline.structure import DraftIngredient, DraftRecipe, DraftServings, to_recipe
+from app.pipeline.structure import DraftIngredient, DraftRecipe, to_recipe
 
 URL = "https://www.tiktok.com/@cook/video/123"
 
@@ -77,22 +77,21 @@ def fakes(monkeypatch):
         "caption": "Garlic butter rice! 1 cup rice, 2 tbsp butter, 3 cloves garlic",
         "complete": True,
         "is_recipe": True,
-        "spoken_servings": None,
+        "spoken_servings": None,  # a count the fake "hears" when the transcript is in the prompt
+        "source": "caption",
     }
-    calls = {"download": 0, "structure_prompts": [], "servings_prompts": []}
+    calls = {"download": 0, "structure_prompts": [], "claude": []}
 
     def fake_ask(*, system, prompt, output, **_):
+        calls["claude"].append(output.__name__)
         if output is DraftRecipe:
             calls["structure_prompts"].append(prompt)
-            source = "transcript" if "<transcript>" in prompt else "caption"
-            draft = draft_recipe(complete=state["complete"], source=source)
+            draft = draft_recipe(complete=state["complete"], source=state["source"])
+            if state["spoken_servings"] and "<transcript>" in prompt:
+                draft = draft.model_copy(update={"servings": state["spoken_servings"], "servings_stated": True})
             if not state["is_recipe"]:
                 draft = draft.model_copy(update={"is_recipe": False, "ingredients": []})
             return draft
-        if output is DraftServings:
-            calls["servings_prompts"].append(prompt)
-            spoken = state["spoken_servings"]
-            return DraftServings(servings=spoken, stated=spoken is not None)
         if output is DraftGuidance:
             return draft_guidance()
         if output is DraftEstimates:
@@ -134,11 +133,9 @@ def test_complete_caption_still_transcribes_for_video_timing(fakes):
     assert job.status == JobStatus.done
     assert job.completed_stages == ["metadata", "audio", "merge"]
     assert calls["download"] == 1
-    # The caption's recipe is kept; the transcript isn't used to restructure it,
-    # only checked for a spoken serving count (none here, so the estimate stays).
+    # One structuring call reads caption and transcript together.
     assert len(calls["structure_prompts"]) == 1
-    assert "<transcript>" not in calls["structure_prompts"][0]
-    assert len(calls["servings_prompts"]) == 1
+    assert "<caption>" in calls["structure_prompts"][0] and "<transcript>" in calls["structure_prompts"][0]
 
     extraction = store.get_extraction(job.recipe_id)
     assert [i.id for i in extraction.recipe.ingredients] == ["rice", "butter", "garlic"]
@@ -155,37 +152,18 @@ def test_complete_caption_uses_servings_said_in_the_video(fakes):
     job = wait(store, store.create_job(url=URL, text=None).job_id)
 
     assert job.status == JobStatus.done
-    assert "add three cloves of garlic" in calls["servings_prompts"][0]
+    assert "add three cloves of garlic" in calls["structure_prompts"][0]
     extraction = store.get_extraction(job.recipe_id)
     assert extraction.recipe.servings == Servings(value=6, estimated=False)
-    # Only the servings change; the caption's ingredients stay.
     assert [i.id for i in extraction.recipe.ingredients] == ["rice", "butter", "garlic"]
     assert {i.source for i in extraction.recipe.ingredients} == {"caption"}
 
 
-def test_servings_check_failure_keeps_the_estimate(fakes, monkeypatch):
-    fake_ask = claude.ask
-
-    def failing_servings(*, output, **kwargs):
-        if output is DraftServings:
-            raise claude.ClaudeError("overloaded")
-        return fake_ask(output=output, **kwargs)
-
-    monkeypatch.setattr(claude, "ask", failing_servings)
-    store = Store()
-    job = wait(store, store.create_job(url=URL, text=None).job_id)
-
-    assert job.status == JobStatus.done
-    assert store.get_extraction(job.recipe_id).recipe.servings == Servings(value=4, estimated=True)
-
-
-def test_incomplete_caption_skips_the_servings_check(fakes):
-    state, calls = fakes
-    state["complete"] = False
+def test_a_new_video_costs_three_claude_calls(fakes):
+    _, calls = fakes
     store = Store()
     wait(store, store.create_job(url=URL, text=None).job_id)
-    # The full restructure already reads the transcript, servings included.
-    assert calls["servings_prompts"] == []
+    assert sorted(calls["claude"]) == ["DraftEstimates", "DraftGuidance", "DraftRecipe"]
 
 
 def test_complete_caption_survives_a_failed_download(fakes, monkeypatch):
@@ -220,6 +198,7 @@ def test_incomplete_caption_fails_when_download_is_blocked(fakes, monkeypatch):
 def test_incomplete_caption_transcribes_and_keeps_timing(fakes):
     state, calls = fakes
     state["complete"] = False
+    state["source"] = "transcript"
     store = Store()
     job = wait(store, store.create_job(url=URL, text=None).job_id)
 
@@ -334,3 +313,93 @@ def test_mode_follows_api_key(monkeypatch):
     assert extract.pipeline_mode() == "stub"
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
     assert extract.pipeline_mode() == "real"
+
+
+# --- Cache and usage ------------------------------------------------------------
+
+
+@pytest.fixture
+def real_cache(monkeypatch, tmp_path):
+    monkeypatch.setenv("EXTRACTION_CACHE", "on")
+    monkeypatch.setenv("CACHE_DB", str(tmp_path / "cache.sqlite3"))
+
+
+def test_repeat_link_is_served_from_cache_with_no_work(fakes, real_cache):
+    _, calls = fakes
+    store = Store()
+    first = wait(store, store.create_job(url=URL, text=None).job_id)
+    work_after_first = (len(calls["claude"]), calls["download"])
+
+    # Same video, spelled differently.
+    again = wait(store, store.create_job(url="https://m.tiktok.com/@cook/video/123?lang=en", text=None).job_id)
+
+    assert again.status == JobStatus.done
+    assert (len(calls["claude"]), calls["download"]) == work_after_first
+    assert again.recipe_id != first.recipe_id
+    a, b = store.get_extraction(first.recipe_id), store.get_extraction(again.recipe_id)
+    assert b.recipe.id == again.recipe_id
+    assert [i.id for i in b.recipe.ingredients] == [i.id for i in a.recipe.ingredients]
+    assert b.steps == a.steps and b.products == a.products
+
+
+def test_repeat_pasted_text_is_served_from_cache(fakes, real_cache):
+    _, calls = fakes
+    store = Store()
+    wait(store, store.create_job(url=None, text="1 cup rice, 2 tbsp butter").job_id)
+    n = len(calls["claude"])
+    job = wait(store, store.create_job(url=None, text="  1 cup RICE,  2 tbsp butter ").job_id)
+    assert job.status == JobStatus.done
+    assert len(calls["claude"]) == n
+
+
+def test_failures_are_not_cached(fakes, real_cache):
+    state, calls = fakes
+    state["is_recipe"] = False
+    store = Store()
+    assert wait(store, store.create_job(url=URL, text=None).job_id).status == JobStatus.failed
+    state["is_recipe"] = True
+    assert wait(store, store.create_job(url=URL, text=None).job_id).status == JobStatus.done
+
+
+def test_cache_keys_match_the_same_video():
+    from app import cache
+
+    assert cache.key_for_url("https://www.tiktok.com/@a/video/42") == "tiktok:42"
+    assert cache.key_for_url("https://m.tiktok.com/@a/video/42/?is_from_webapp=1") == "tiktok:42"
+    assert cache.key_for_url("https://www.instagram.com/reel/Cabc123/?igsh=x") == "instagram:Cabc123"
+    assert cache.key_for_url("https://vm.tiktok.com/ZMabc/") == "url:vm.tiktok.com/ZMabc"
+
+
+def test_job_usage_totals_every_call_including_parallel_ones(fakes, monkeypatch, tmp_path):
+    from types import SimpleNamespace
+
+    from app import usage
+
+    fake_ask = claude.ask
+
+    def ask_with_usage(*, output, **kwargs):
+        fake_usage = SimpleNamespace(
+            input_tokens=1000, output_tokens=2000, cache_creation_input_tokens=0, cache_read_input_tokens=0,
+            output_tokens_details=SimpleNamespace(thinking_tokens=500),
+        )
+        usage.record(output.__name__, "claude-opus-5-5", fake_usage)
+        return fake_ask(output=output, **kwargs)
+
+    monkeypatch.setattr(claude, "ask", ask_with_usage)
+    log_path = tmp_path / "usage.jsonl"
+    monkeypatch.setenv("USAGE_LOG", str(log_path))
+
+    store = Store()
+    wait(store, store.create_job(url=URL, text=None).job_id)
+    for _ in range(100):  # the summary is written just after the job reports done
+        if log_path.exists():
+            break
+        time.sleep(0.01)
+
+    import json
+
+    summary = json.loads(log_path.read_text(encoding="utf-8").splitlines()[-1])
+    assert summary["claude_calls"] == 3
+    assert summary["output_tokens"] == 6000 and summary["thinking_tokens"] == 1500
+    # 3 calls x (1,000 in at $4/M + 2,000 out at $20/M)
+    assert summary["est_list_price_usd"] == pytest.approx(3 * (0.004 + 0.04))

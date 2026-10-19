@@ -56,10 +56,12 @@ When a decision is made, record it in `docs/decisions.md`.
 - After changing `backend/app/models.py` or routes: `cd backend && .venv/bin/python scripts/export_openapi.py`, then `cd frontend && npm run gen:api`. Commit both `backend/openapi.json` and `frontend/src/lib/api-types.ts`.
 
 ## Current state
-- With `ANTHROPIC_API_KEY` set (in `backend/.env` locally), links run the real pipeline in `backend/app/pipeline/extract.py`: caption via yt-dlp → audio download + faster-whisper on every link (except videos over 10 minutes), because the transcript times drive cook mode's step-by-step video clips; the recipe is restructured from the transcript only if the caption lacks it, and a failed download doesn't fail a complete caption recipe → Claude structures the recipe, writes the steps, and estimates prices and macros. The frame stage isn't built yet.
+- With `ANTHROPIC_API_KEY` set (in `backend/.env` locally), links run the real pipeline in `backend/app/pipeline/extract.py`: cache check → caption via yt-dlp → audio download + faster-whisper on every link (except videos over 10 minutes), because the transcript times drive cook mode's step-by-step video clips → three Claude calls: one structures the recipe from caption + transcript together (servings said out loud included), then steps and estimates run in parallel. A failed download doesn't fail a complete caption recipe. The frame stage isn't built yet.
+- Repeat links and pasted text are served from a SQLite cache (`backend/app/cache.py`, `backend/.cache/`) with no download or Claude calls. Bump `CACHE_VERSION` when prompts or the output schema change; `EXTRACTION_CACHE=off` reprocesses everything. Best effort: Render wipes the disk on restart.
+- Every job logs its Claude calls and tokens, with a list-price estimate, to the console and `backend/.cache/usage.jsonl` (`backend/app/usage.py`). Use it to measure cost changes; the MIT gateway's dashboard is the real bill.
 - Prices and macros are Claude estimates (`backend/app/pipeline/estimates.py`), always tagged `estimate` / approximate, until the price source (#1) and USDA adapter land.
 - Without a key, or with `PIPELINE_MODE=stub`, every link returns the sample recipe in `backend/app/fixtures/sample_recipe.json` with simulated progress (one stage every `STUB_STAGE_SECONDS`). A link containing `stub-fail` fails on purpose. Stub code is marked `STUB:`. Tests always run in stub mode (`backend/tests/conftest.py`) and fake external services.
-- Jobs and recipes live in memory and disappear on restart, until the SQLite cache lands.
+- Jobs live in memory and disappear on restart; finished recipes also live in the cache above.
 - Cost math in `backend/app/costs.py` is real and tested. Prices themselves are stub estimates.
 - Keep the repo outside iCloud-synced folders such as `~/Documents`: syncing `.venv` and `node_modules` makes imports and tests hang.
 

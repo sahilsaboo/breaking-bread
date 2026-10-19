@@ -16,6 +16,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 
+from app import usage
 from app.models import Job, JobStatus, Recipe, Stage
 from app.pipeline.extract import (
     LINK_STAGES,
@@ -129,9 +130,20 @@ class Store:
                 if stage in record.stages:
                     record.stages.remove(stage)
 
+        job_usage = usage.JobUsage(job_id=record.job_id, source=record.url or "pasted text")
+        usage.current.set(job_usage)  # this thread's context: every Claude call in the job reports here
+
+        def on_cache_hit() -> None:
+            job_usage.cache_hit = True
+
         try:
             result = real_extraction(
-                recipe_id=recipe_id, url=record.url, text=record.text, on_stage=on_stage, skip_stage=skip_stage
+                recipe_id=recipe_id,
+                url=record.url,
+                text=record.text,
+                on_stage=on_stage,
+                skip_stage=skip_stage,
+                on_cache_hit=on_cache_hit,
             )
         except ExtractionError as e:
             with self._lock:
@@ -145,6 +157,8 @@ class Store:
                 self._results[recipe_id] = result
                 record.recipe_id = recipe_id
                 record.finished = True
+        finally:
+            usage.finish(job_usage)  # failed jobs still cost tokens, so log them too
 
     # --- Stub ------------------------------------------------------------------
 

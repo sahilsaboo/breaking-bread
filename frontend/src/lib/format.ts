@@ -6,7 +6,8 @@ export function approxMoney(amount: number): string {
 }
 
 export function amountLabel(i: Ingredient): string {
-  if (i.quantity == null) return i.unit ?? "";
+  // Videos often never say amounts; then all we have is an estimated weight.
+  if (i.quantity == null) return i.grams != null ? `~${Math.round(i.grams)} g` : (i.unit ?? "");
   const qty = Number.isInteger(i.quantity) ? String(i.quantity) : fraction(i.quantity);
   return [qty, i.unit].filter(Boolean).join(" ");
 }
