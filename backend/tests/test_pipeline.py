@@ -12,7 +12,7 @@ from app.pipeline import extract
 from app.pipeline.estimates import DraftEstimate, DraftEstimates, to_products_and_macros
 from app.pipeline.guidance import DraftGuidance, DraftStep, DraftTerm, to_steps
 from app.pipeline.plan import build_plan
-from app.pipeline.structure import DraftIngredient, DraftRecipe, to_recipe
+from app.pipeline.structure import DraftIngredient, DraftRecipe, DraftServings, to_recipe
 
 URL = "https://www.tiktok.com/@cook/video/123"
 
@@ -73,8 +73,13 @@ def draft_estimates():
 @pytest.fixture
 def fakes(monkeypatch):
     """Fake services; tests tweak `state` to change what they return."""
-    state = {"caption": "Garlic butter rice! 1 cup rice, 2 tbsp butter, 3 cloves garlic", "complete": True, "is_recipe": True}
-    calls = {"download": 0, "structure_prompts": []}
+    state = {
+        "caption": "Garlic butter rice! 1 cup rice, 2 tbsp butter, 3 cloves garlic",
+        "complete": True,
+        "is_recipe": True,
+        "spoken_servings": None,
+    }
+    calls = {"download": 0, "structure_prompts": [], "servings_prompts": []}
 
     def fake_ask(*, system, prompt, output, **_):
         if output is DraftRecipe:
@@ -84,6 +89,10 @@ def fakes(monkeypatch):
             if not state["is_recipe"]:
                 draft = draft.model_copy(update={"is_recipe": False, "ingredients": []})
             return draft
+        if output is DraftServings:
+            calls["servings_prompts"].append(prompt)
+            spoken = state["spoken_servings"]
+            return DraftServings(servings=spoken, stated=spoken is not None)
         if output is DraftGuidance:
             return draft_guidance()
         if output is DraftEstimates:
@@ -125,9 +134,11 @@ def test_complete_caption_still_transcribes_for_video_timing(fakes):
     assert job.status == JobStatus.done
     assert job.completed_stages == ["metadata", "audio", "merge"]
     assert calls["download"] == 1
-    # The caption's recipe is kept; the transcript isn't used to restructure it.
+    # The caption's recipe is kept; the transcript isn't used to restructure it,
+    # only checked for a spoken serving count (none here, so the estimate stays).
     assert len(calls["structure_prompts"]) == 1
     assert "<transcript>" not in calls["structure_prompts"][0]
+    assert len(calls["servings_prompts"]) == 1
 
     extraction = store.get_extraction(job.recipe_id)
     assert [i.id for i in extraction.recipe.ingredients] == ["rice", "butter", "garlic"]
@@ -135,6 +146,46 @@ def test_complete_caption_still_transcribes_for_video_timing(fakes):
     assert extraction.recipe.servings == Servings(value=4, estimated=True)
     # The transcript gives cook mode its video timing.
     assert (extraction.steps[0].video_start_seconds, extraction.steps[0].video_end_seconds) == (2, 6)
+
+
+def test_complete_caption_uses_servings_said_in_the_video(fakes):
+    state, calls = fakes
+    state["spoken_servings"] = 6
+    store = Store()
+    job = wait(store, store.create_job(url=URL, text=None).job_id)
+
+    assert job.status == JobStatus.done
+    assert "add three cloves of garlic" in calls["servings_prompts"][0]
+    extraction = store.get_extraction(job.recipe_id)
+    assert extraction.recipe.servings == Servings(value=6, estimated=False)
+    # Only the servings change; the caption's ingredients stay.
+    assert [i.id for i in extraction.recipe.ingredients] == ["rice", "butter", "garlic"]
+    assert {i.source for i in extraction.recipe.ingredients} == {"caption"}
+
+
+def test_servings_check_failure_keeps_the_estimate(fakes, monkeypatch):
+    fake_ask = claude.ask
+
+    def failing_servings(*, output, **kwargs):
+        if output is DraftServings:
+            raise claude.ClaudeError("overloaded")
+        return fake_ask(output=output, **kwargs)
+
+    monkeypatch.setattr(claude, "ask", failing_servings)
+    store = Store()
+    job = wait(store, store.create_job(url=URL, text=None).job_id)
+
+    assert job.status == JobStatus.done
+    assert store.get_extraction(job.recipe_id).recipe.servings == Servings(value=4, estimated=True)
+
+
+def test_incomplete_caption_skips_the_servings_check(fakes):
+    state, calls = fakes
+    state["complete"] = False
+    store = Store()
+    wait(store, store.create_job(url=URL, text=None).job_id)
+    # The full restructure already reads the transcript, servings included.
+    assert calls["servings_prompts"] == []
 
 
 def test_complete_caption_survives_a_failed_download(fakes, monkeypatch):
